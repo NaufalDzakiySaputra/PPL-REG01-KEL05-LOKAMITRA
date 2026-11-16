@@ -14,6 +14,7 @@ import { useInitials } from '@/composables/useInitials';
 import { menuIcons } from '@/lib/menuIcons';
 
 // Sidebar sesuai Figma: Admin = terang + "PANEL ADMIN", role lain = hijau gelap.
+// Varian terang (Admin) kini punya pasangan dark: agar ikut mode gelap.
 const emit = defineEmits<{ navigasi: [] }>();
 
 const page = usePage();
@@ -34,11 +35,11 @@ const kelas = computed(() =>
               nonaktif: 'text-white/40',
           }
         : {
-              panel: 'bg-white text-neutral-700 border-r border-neutral-200',
-              aktif: 'bg-[#E3EFE3] text-[#245C3B] font-semibold',
-              biasa: 'hover:bg-neutral-100',
-              kartu: 'bg-[#F3F4F1] text-neutral-900 hover:bg-neutral-200/60',
-              nonaktif: 'text-neutral-400',
+              panel: 'bg-white text-neutral-700 border-r border-neutral-200 dark:border-sidebar-border dark:bg-card dark:text-neutral-200',
+              aktif: 'bg-[#E3EFE3] text-[#245C3B] font-semibold dark:bg-emerald-500/15 dark:text-emerald-300',
+              biasa: 'hover:bg-neutral-100 dark:hover:bg-white/10',
+              kartu: 'bg-[#F3F4F1] text-neutral-900 hover:bg-neutral-200/60 dark:bg-white/10 dark:text-white dark:hover:bg-white/15',
+              nonaktif: 'text-neutral-400 dark:text-neutral-500',
           },
 );
 </script>
@@ -61,7 +62,7 @@ const kelas = computed(() =>
                 <LokamitraLogo />
                 <p
                     v-if="menu?.panel"
-                    class="mt-1 text-[10px] font-bold tracking-wide text-[#245C3B]"
+                    class="mt-1 text-[10px] font-bold tracking-wide text-[#245C3B] dark:text-emerald-300"
                 >
                     {{ menu.panel }}
                 </p>

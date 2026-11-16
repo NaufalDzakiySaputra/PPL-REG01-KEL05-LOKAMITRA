@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import DashCard from '@/components/dashboard/DashCard.vue';
 
 interface DokumenItem {
     id: number;
@@ -107,9 +108,8 @@ defineOptions({
 
         <section class="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(300px,0.8fr)]">
             <div class="space-y-5">
-                <div class="rounded-xl border p-5">
-                    <h2 class="font-semibold">Informasi akun</h2>
-                    <dl class="mt-4 grid gap-4 sm:grid-cols-2">
+                <DashCard judul="Informasi akun">
+                    <dl class="grid gap-4 sm:grid-cols-2">
                         <div>
                             <dt class="text-xs text-muted-foreground">Nama penanggung jawab</dt>
                             <dd class="mt-1 font-medium">{{ pengajuan.nama }}</dd>
@@ -131,24 +131,22 @@ defineOptions({
                             <dd class="mt-1 font-medium">{{ tanggal(pengajuan.tanggal_daftar) }}</dd>
                         </div>
                     </dl>
-                </div>
+                </DashCard>
 
-                <div class="rounded-xl border p-5">
-                    <h2 class="font-semibold">Data profil {{ pengajuan.role_label }}</h2>
-                    <dl v-if="pengajuan.profil.length" class="mt-4 grid gap-4 sm:grid-cols-2">
+                <DashCard :judul="`Data profil ${pengajuan.role_label}`">
+                    <dl v-if="pengajuan.profil.length" class="grid gap-4 sm:grid-cols-2">
                         <div v-for="field in pengajuan.profil" :key="field.label" class="min-w-0">
                             <dt class="text-xs text-muted-foreground">{{ field.label }}</dt>
                             <dd class="mt-1 break-words text-sm font-medium">{{ field.value }}</dd>
                         </div>
                     </dl>
-                    <p v-else class="mt-3 text-sm text-muted-foreground">Data profil belum tersedia.</p>
-                </div>
+                    <p v-else class="text-sm text-muted-foreground">Data profil belum tersedia.</p>
+                </DashCard>
             </div>
 
             <aside class="space-y-5">
-                <div class="rounded-xl border p-5">
-                    <h2 class="font-semibold">Keputusan verifikasi akun</h2>
-                    <p class="mt-1 text-sm text-muted-foreground">Akun hanya dapat disetujui setelah profil lengkap dan semua dokumen yang diunggah sudah diperiksa.</p>
+                <DashCard judul="Keputusan verifikasi akun">
+                    <p class="text-sm text-muted-foreground">Akun hanya dapat disetujui setelah profil lengkap dan semua dokumen yang diunggah sudah diperiksa.</p>
 
                     <div v-if="kendala_persetujuan.length" class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
                         <p class="font-medium">Belum dapat disetujui</p>
@@ -176,28 +174,24 @@ defineOptions({
                         </form>
                     </div>
                     <p v-else class="mt-4 text-sm text-muted-foreground">Pengajuan ini sudah diproses. Keputusan akun tidak dapat diubah melalui halaman ini.</p>
-                </div>
+                </DashCard>
 
-                <div class="rounded-xl border p-5">
-                    <h2 class="font-semibold">Panduan pemeriksaan</h2>
-                    <ol class="mt-3 list-inside list-decimal space-y-2 text-sm text-muted-foreground">
+                <DashCard judul="Panduan pemeriksaan">
+                    <ol class="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
                         <li>Pastikan nama dan kontak pendaftar masuk akal.</li>
                         <li>Periksa kesesuaian data profil dengan role.</li>
                         <li>Lihat dokumen melalui preview atau unduh jika diperlukan.</li>
                         <li>Setujui setiap dokumen sebelum menyetujui akun.</li>
                     </ol>
-                </div>
+                </DashCard>
             </aside>
         </section>
 
-        <section class="rounded-xl border">
-            <div class="border-b p-5">
-                <h2 class="font-semibold">Dokumen persyaratan</h2>
-                <p class="mt-1 text-sm text-muted-foreground">File tersimpan secara privat. Admin dapat melihat PDF/gambar di browser atau mengunduhnya.</p>
-            </div>
+        <DashCard judul="Dokumen persyaratan">
+            <p class="-mt-1 text-sm text-muted-foreground">File tersimpan secara privat. Admin dapat melihat PDF/gambar di browser atau mengunduhnya.</p>
 
-            <div v-if="pengajuan.dokumen.length" class="divide-y">
-                <article v-for="document in pengajuan.dokumen" :key="document.id" class="grid gap-4 p-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+            <div v-if="pengajuan.dokumen.length" class="mt-4 divide-y border-t">
+                <article v-for="document in pengajuan.dokumen" :key="document.id" class="grid gap-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
                             <h3 class="font-medium">{{ document.jenis }}</h3>
@@ -237,10 +231,10 @@ defineOptions({
                 </article>
             </div>
 
-            <div v-else class="p-8 text-center">
+            <div v-else class="mt-4 border-t p-8 text-center">
                 <p class="font-medium">Tidak ada dokumen yang diunggah</p>
                 <p class="mt-1 text-sm text-muted-foreground">Role ini tidak mensyaratkan dokumen atau pendaftar belum mengunggah file.</p>
             </div>
-        </section>
+        </DashCard>
     </div>
 </template>

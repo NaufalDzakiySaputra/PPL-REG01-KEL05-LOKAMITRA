@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Search, ClipboardList } from '@lucide/vue';
+import DashCard from '@/components/dashboard/DashCard.vue';
+import StatCard from '@/components/dashboard/StatCard.vue';
 
 interface PengajuanItem {
     id: number;
@@ -87,87 +89,82 @@ defineOptions({
             <Link href="/admin/dashboard" class="text-sm font-medium text-primary hover:underline">Kembali ke dashboard</Link>
         </header>
 
+        <!-- ringkasan: kartu angka yang sama dengan dashboard -->
         <section class="grid gap-3 sm:grid-cols-3">
-            <div class="rounded-xl border p-4">
-                <p class="text-sm text-muted-foreground">Menunggu verifikasi</p>
-                <p class="mt-1 text-2xl font-semibold">{{ ringkasan.menunggu }}</p>
-            </div>
-            <div class="rounded-xl border p-4">
-                <p class="text-sm text-muted-foreground">Akun aktif</p>
-                <p class="mt-1 text-2xl font-semibold">{{ ringkasan.aktif }}</p>
-            </div>
-            <div class="rounded-xl border p-4">
-                <p class="text-sm text-muted-foreground">Akun ditolak</p>
-                <p class="mt-1 text-2xl font-semibold">{{ ringkasan.ditolak }}</p>
-            </div>
+            <StatCard label="Menunggu verifikasi" :nilai="ringkasan.menunggu" aksen="admin" />
+            <StatCard label="Akun aktif" :nilai="ringkasan.aktif" aksen="admin" />
+            <StatCard label="Akun ditolak" :nilai="ringkasan.ditolak" aksen="admin" />
         </section>
 
-        <form @submit.prevent="cari" class="grid gap-3 rounded-xl border p-4 md:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
-            <label class="flex flex-col gap-1 text-sm">
-                Cari pendaftar
-                <span class="relative">
-                    <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <input v-model="filters.q" type="search" placeholder="Nama, email, atau profil" class="w-full rounded-lg border bg-background py-2 pl-9 pr-3" />
-                </span>
-            </label>
-            <label class="flex flex-col gap-1 text-sm">
-                Status akun
-                <select v-model="filters.status" class="rounded-lg border bg-background px-3 py-2">
-                    <option value="menunggu">Menunggu</option>
-                    <option value="aktif">Aktif</option>
-                    <option value="ditolak">Ditolak</option>
-                    <option value="semua">Semua status</option>
-                </select>
-            </label>
-            <label class="flex flex-col gap-1 text-sm">
-                Role
-                <select v-model="filters.role" class="rounded-lg border bg-background px-3 py-2">
-                    <option value="semua">Semua role</option>
-                    <option v-for="role in roles" :key="role.value" :value="role.value">{{ role.label }}</option>
-                </select>
-            </label>
-            <div class="flex items-end">
-                <button type="submit" :disabled="filters.processing" class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">Terapkan</button>
-            </div>
-        </form>
+        <!-- filter -->
+        <DashCard>
+            <form @submit.prevent="cari" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
+                <label class="flex flex-col gap-1 text-sm">
+                    Cari pendaftar
+                    <span class="relative">
+                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                        <input v-model="filters.q" type="search" placeholder="Nama, email, atau profil" class="w-full rounded-lg border bg-background py-2 pl-9 pr-3" />
+                    </span>
+                </label>
+                <label class="flex flex-col gap-1 text-sm">
+                    Status akun
+                    <select v-model="filters.status" class="rounded-lg border bg-background px-3 py-2">
+                        <option value="menunggu">Menunggu</option>
+                        <option value="aktif">Aktif</option>
+                        <option value="ditolak">Ditolak</option>
+                        <option value="semua">Semua status</option>
+                    </select>
+                </label>
+                <label class="flex flex-col gap-1 text-sm">
+                    Role
+                    <select v-model="filters.role" class="rounded-lg border bg-background px-3 py-2">
+                        <option value="semua">Semua role</option>
+                        <option v-for="role in roles" :key="role.value" :value="role.value">{{ role.label }}</option>
+                    </select>
+                </label>
+                <div class="flex items-end">
+                    <button type="submit" :disabled="filters.processing" class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">Terapkan</button>
+                </div>
+            </form>
+        </DashCard>
 
-        <section class="overflow-hidden rounded-xl border">
-            <div class="flex items-center justify-between border-b p-4">
-                <h2 class="font-semibold">Daftar pendaftar</h2>
+        <!-- daftar pendaftar -->
+        <DashCard judul="Daftar pendaftar">
+            <template #aksi>
                 <span class="text-xs text-muted-foreground">{{ pengajuan.total }} data</span>
-            </div>
+            </template>
 
             <div v-if="pengajuan.data.length" class="overflow-x-auto">
                 <table class="w-full min-w-[850px] text-left text-sm">
-                    <thead class="bg-muted/50 text-xs uppercase text-muted-foreground">
+                    <thead class="border-b text-xs uppercase text-muted-foreground">
                         <tr>
-                            <th class="px-4 py-3 font-medium">Pendaftar</th>
-                            <th class="px-4 py-3 font-medium">Role</th>
-                            <th class="px-4 py-3 font-medium">Profil</th>
-                            <th class="px-4 py-3 font-medium">Dokumen</th>
-                            <th class="px-4 py-3 font-medium">Status</th>
-                            <th class="px-4 py-3 font-medium">Tanggal daftar</th>
-                            <th class="px-4 py-3 font-medium">Aksi</th>
+                            <th class="px-3 py-3 font-medium">Pendaftar</th>
+                            <th class="px-3 py-3 font-medium">Role</th>
+                            <th class="px-3 py-3 font-medium">Profil</th>
+                            <th class="px-3 py-3 font-medium">Dokumen</th>
+                            <th class="px-3 py-3 font-medium">Status</th>
+                            <th class="px-3 py-3 font-medium">Tanggal daftar</th>
+                            <th class="px-3 py-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
                         <tr v-for="item in pengajuan.data" :key="item.id" class="align-top">
-                            <td class="px-4 py-4">
+                            <td class="px-3 py-4">
                                 <p class="font-medium">{{ item.nama }}</p>
                                 <p class="mt-1 text-xs text-muted-foreground">{{ item.email }}</p>
                                 <p v-if="item.nomor_telepon" class="text-xs text-muted-foreground">{{ item.nomor_telepon }}</p>
                             </td>
-                            <td class="px-4 py-4">{{ item.role_label }}</td>
-                            <td class="px-4 py-4">{{ item.nama_profil || '-' }}</td>
-                            <td class="px-4 py-4">
+                            <td class="px-3 py-4">{{ item.role_label }}</td>
+                            <td class="px-3 py-4">{{ item.nama_profil || '-' }}</td>
+                            <td class="px-3 py-4">
                                 <span>{{ item.jumlah_dokumen }} file</span>
-                                <p v-if="item.dokumen_menunggu" class="mt-1 text-xs text-amber-700">{{ item.dokumen_menunggu }} menunggu</p>
+                                <p v-if="item.dokumen_menunggu" class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ item.dokumen_menunggu }} menunggu</p>
                             </td>
-                            <td class="px-4 py-4">
+                            <td class="px-3 py-4">
                                 <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium" :class="warnaStatus(item.status_akun)">{{ labelStatus(item.status_akun) }}</span>
                             </td>
-                            <td class="px-4 py-4 text-muted-foreground">{{ tanggal(item.tanggal_daftar) }}</td>
-                            <td class="px-4 py-4">
+                            <td class="px-3 py-4 text-muted-foreground">{{ tanggal(item.tanggal_daftar) }}</td>
+                            <td class="px-3 py-4">
                                 <Link :href="`/admin/pengajuan/${item.id}`" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-medium hover:bg-muted">
                                     <ClipboardList class="h-3.5 w-3.5" /> Detail
                                 </Link>
@@ -183,7 +180,7 @@ defineOptions({
                 <p class="text-sm text-muted-foreground">Tidak ada data yang sesuai dengan filter saat ini.</p>
             </div>
 
-            <div v-if="pengajuan.links.length > 3" class="flex flex-wrap justify-end gap-1 border-t p-3">
+            <div v-if="pengajuan.links.length > 3" class="mt-4 flex flex-wrap justify-end gap-1 border-t pt-3">
                 <template v-for="(link, index) in pengajuan.links" :key="index">
                     <Link v-if="link.url" :href="link.url" preserve-state preserve-scroll class="rounded-md border px-3 py-1.5 text-xs" :class="link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'">
                         {{ labelHalaman(link.label) }}
@@ -191,6 +188,6 @@ defineOptions({
                     <span v-else class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground opacity-50">{{ labelHalaman(link.label) }}</span>
                 </template>
             </div>
-        </section>
+        </DashCard>
     </div>
 </template>
