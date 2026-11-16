@@ -48,18 +48,31 @@ function cari(): void {
 }
 
 function labelStatus(status: string): string {
-    return ({ menunggu: 'Menunggu', aktif: 'Aktif', ditolak: 'Ditolak' } as Record<string, string>)[status] ?? status;
+    return (
+        (
+            {
+                menunggu: 'Menunggu',
+                aktif: 'Aktif',
+                ditolak: 'Ditolak',
+            } as Record<string, string>
+        )[status] ?? status
+    );
 }
 
 function warnaStatus(status: string): string {
-    if (status === 'aktif') return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
-    if (status === 'ditolak') return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300';
+    if (status === 'aktif')
+        return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
+    if (status === 'ditolak')
+        return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300';
     return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
 }
 
 function tanggal(value: string | null): string {
     if (!value) return '-';
-    return new Intl.DateTimeFormat('id-ID', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+    return new Intl.DateTimeFormat('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    }).format(new Date(value));
 }
 
 function labelHalaman(label: string): string {
@@ -80,13 +93,22 @@ defineOptions({
     <Head title="Pengajuan Pendaftaran" />
 
     <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
-        <header class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <header
+            class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between"
+        >
             <div>
                 <p class="text-sm text-muted-foreground">Pengelolaan akun</p>
                 <h1 class="text-2xl font-semibold">Pengajuan Pendaftaran</h1>
-                <p class="mt-1 text-sm text-muted-foreground">Periksa profil dan dokumen calon mitra sebelum mengaktifkan akun.</p>
+                <p class="mt-1 text-sm text-muted-foreground">
+                    Periksa profil dan dokumen calon mitra sebelum mengaktifkan
+                    akun.
+                </p>
             </div>
-            <Link href="/admin/dashboard" class="text-sm font-medium text-primary hover:underline">Kembali ke dashboard</Link>
+            <Link
+                href="/admin/dashboard"
+                class="text-sm font-medium text-primary hover:underline"
+                >Kembali ke dashboard</Link
+            >
         </header>
 
         <!-- ringkasan: kartu angka yang sama dengan dashboard -->
@@ -151,8 +173,15 @@ defineOptions({
                         <tr v-for="item in pengajuan.data" :key="item.id" class="align-top">
                             <td class="px-3 py-4">
                                 <p class="font-medium">{{ item.nama }}</p>
-                                <p class="mt-1 text-xs text-muted-foreground">{{ item.email }}</p>
-                                <p v-if="item.nomor_telepon" class="text-xs text-muted-foreground">{{ item.nomor_telepon }}</p>
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    {{ item.email }}
+                                </p>
+                                <p
+                                    v-if="item.nomor_telepon"
+                                    class="text-xs text-muted-foreground"
+                                >
+                                    {{ item.nomor_telepon }}
+                                </p>
                             </td>
                             <td class="px-3 py-4">{{ item.role_label }}</td>
                             <td class="px-3 py-4">{{ item.nama_profil || '-' }}</td>
@@ -174,18 +203,38 @@ defineOptions({
                 </table>
             </div>
 
-            <div v-else class="flex flex-col items-center gap-2 px-4 py-12 text-center">
+            <div
+                v-else
+                class="flex flex-col items-center gap-2 px-4 py-12 text-center"
+            >
                 <ClipboardList class="h-8 w-8 text-muted-foreground" />
                 <p class="font-medium">Belum ada pengajuan</p>
-                <p class="text-sm text-muted-foreground">Tidak ada data yang sesuai dengan filter saat ini.</p>
+                <p class="text-sm text-muted-foreground">
+                    Tidak ada data yang sesuai dengan filter saat ini.
+                </p>
             </div>
 
             <div v-if="pengajuan.links.length > 3" class="mt-4 flex flex-wrap justify-end gap-1 border-t pt-3">
                 <template v-for="(link, index) in pengajuan.links" :key="index">
-                    <Link v-if="link.url" :href="link.url" preserve-state preserve-scroll class="rounded-md border px-3 py-1.5 text-xs" :class="link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'">
+                    <Link
+                        v-if="link.url"
+                        :href="link.url"
+                        preserve-state
+                        preserve-scroll
+                        class="rounded-md border px-3 py-1.5 text-xs"
+                        :class="
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'hover:bg-muted'
+                        "
+                    >
                         {{ labelHalaman(link.label) }}
                     </Link>
-                    <span v-else class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground opacity-50">{{ labelHalaman(link.label) }}</span>
+                    <span
+                        v-else
+                        class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground opacity-50"
+                        >{{ labelHalaman(link.label) }}</span
+                    >
                 </template>
             </div>
         </DashCard>

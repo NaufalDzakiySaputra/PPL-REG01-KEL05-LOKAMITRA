@@ -6,7 +6,6 @@ use App\Models\Admin;
 use App\Models\DokumenPersyaratan;
 use App\Models\Eo;
 use App\Models\Notifikasi;
-use App\Models\RiwayatAktivitas;
 use App\Models\User;
 use App\Models\VendorUmkm;
 use Illuminate\Foundation\Testing\RefreshDatabase;
