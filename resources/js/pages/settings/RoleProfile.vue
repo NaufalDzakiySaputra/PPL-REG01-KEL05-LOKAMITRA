@@ -17,7 +17,9 @@ const props = defineProps<{
 }>();
 
 const form = useForm<Record<string, string | number>>(
-    Object.fromEntries(props.fields.map((field) => [field.key, field.value ?? ''])),
+    Object.fromEntries(
+        props.fields.map((field) => [field.key, field.value ?? '']),
+    ),
 );
 
 const judul = computed(() => `Profil ${props.roleLabel}`);
@@ -30,9 +32,7 @@ function simpan(): void {
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            { title: 'Profil Peran', href: '/profil-peran' },
-        ],
+        breadcrumbs: [{ title: 'Profil Peran', href: '/profil-peran' }],
     },
 });
 </script>
@@ -45,15 +45,21 @@ defineOptions({
             <p class="text-sm text-muted-foreground">Pengaturan profil</p>
             <h1 class="mt-1 text-2xl font-semibold">{{ judul }}</h1>
             <p class="mt-1 text-sm text-muted-foreground">
-                Perbarui informasi organisasi atau profil peran yang terhubung ke akun Anda.
+                Perbarui informasi organisasi atau profil peran yang terhubung
+                ke akun Anda.
             </p>
         </header>
 
-        <form @submit.prevent="simpan" class="max-w-3xl space-y-5 rounded-2xl border border-sidebar-border/70 bg-card p-5 dark:border-sidebar-border">
+        <form
+            @submit.prevent="simpan"
+            class="max-w-3xl space-y-5 rounded-2xl border border-sidebar-border/70 bg-card p-5 dark:border-sidebar-border"
+        >
             <div v-for="field in fields" :key="field.key" class="space-y-2">
                 <label :for="field.key" class="text-sm font-medium">
                     {{ field.label }}
-                    <span v-if="field.required" class="text-destructive">*</span>
+                    <span v-if="field.required" class="text-destructive"
+                        >*</span
+                    >
                 </label>
 
                 <textarea
@@ -61,7 +67,7 @@ defineOptions({
                     :id="field.key"
                     v-model="form[field.key]"
                     rows="3"
-                    class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+                    class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     :aria-invalid="Boolean(form.errors[field.key])"
                 />
                 <input
@@ -70,13 +76,15 @@ defineOptions({
                     v-model="form[field.key]"
                     :type="field.type"
                     :min="field.type === 'number' ? 1 : undefined"
-                    class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring"
+                    class="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     :aria-invalid="Boolean(form.errors[field.key])"
                 />
                 <InputError :message="form.errors[field.key]" />
             </div>
 
-            <div class="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end">
+            <div
+                class="flex flex-col-reverse gap-2 border-t pt-4 sm:flex-row sm:justify-end"
+            >
                 <button
                     type="submit"
                     :disabled="form.processing"

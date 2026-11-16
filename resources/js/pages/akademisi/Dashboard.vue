@@ -8,7 +8,9 @@ defineProps<MitraDashboardProps>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Dashboard Akademisi', href: '/akademisi/dashboard' }],
+        breadcrumbs: [
+            { title: 'Dashboard Akademisi', href: '/akademisi/dashboard' },
+        ],
     },
 });
 </script>

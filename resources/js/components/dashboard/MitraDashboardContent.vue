@@ -18,12 +18,15 @@ const labelStatus: Record<string, string> = {
     <div class="flex flex-col gap-4 p-4 md:p-6">
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-extrabold" data-test="mitra-dashboard-title">
+                <h1
+                    class="text-2xl font-extrabold"
+                    data-test="mitra-dashboard-title"
+                >
                     Dashboard {{ peran }}
                 </h1>
                 <p class="text-sm text-neutral-600 dark:text-muted-foreground">
-                    Selamat datang, {{ $page.props.auth.user?.name }}. Pantau tugas
-                    dan event yang Anda ikuti.
+                    Selamat datang, {{ $page.props.auth.user?.name }}. Pantau
+                    tugas dan event yang Anda ikuti.
                 </p>
             </div>
             <span
@@ -75,13 +78,20 @@ const labelStatus: Record<string, string> = {
                         <div
                             class="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#FBE9C4] leading-tight text-[#8A5A00]"
                         >
-                            <span class="text-base font-extrabold">{{ t.hari }}</span>
-                            <span class="text-[10px] font-semibold">{{ t.bulan }}</span>
+                            <span class="text-base font-extrabold">{{
+                                t.hari
+                            }}</span>
+                            <span class="text-[10px] font-semibold">{{
+                                t.bulan
+                            }}</span>
                         </div>
                         <div class="min-w-0">
-                            <p class="truncate text-sm font-semibold">{{ t.judul }}</p>
+                            <p class="truncate text-sm font-semibold">
+                                {{ t.judul }}
+                            </p>
                             <p class="truncate text-xs text-neutral-500">
-                                {{ t.event }} · {{ labelStatus[t.status] ?? t.status }}
+                                {{ t.event }} ·
+                                {{ labelStatus[t.status] ?? t.status }}
                             </p>
                         </div>
                     </li>
@@ -132,7 +142,11 @@ const labelStatus: Record<string, string> = {
                     Belum ada aktivitas.
                 </p>
                 <ul v-else class="divide-y divide-neutral-200/80">
-                    <li v-for="(a, i) in aktivitas" :key="i" class="py-3 text-sm">
+                    <li
+                        v-for="(a, i) in aktivitas"
+                        :key="i"
+                        class="py-3 text-sm"
+                    >
                         <p>{{ a.teks }}</p>
                         <p class="text-xs text-neutral-500">{{ a.waktu }}</p>
                     </li>

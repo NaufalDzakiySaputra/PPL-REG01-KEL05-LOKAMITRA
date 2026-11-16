@@ -28,7 +28,14 @@ const props = defineProps<{
     pilihan: { kategori: string[]; kota: string[] };
 }>();
 
-const palet = ['#4CC95F', '#F5333A', '#F58A1F', '#3DC1E8', '#3CC9B5', '#F72554'];
+const palet = [
+    '#4CC95F',
+    '#F5333A',
+    '#F58A1F',
+    '#3DC1E8',
+    '#3CC9B5',
+    '#F72554',
+];
 
 const q = ref(props.filter.q);
 
@@ -48,7 +55,9 @@ function terapkan(perubahan: Partial<typeof props.filter> = {}) {
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Beranda Pengunjung', href: '/pengunjung/dashboard' }],
+        breadcrumbs: [
+            { title: 'Beranda Pengunjung', href: '/pengunjung/dashboard' },
+        ],
     },
 });
 </script>
@@ -125,23 +134,36 @@ defineOptions({
 
         <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
             <p class="text-sm">
-                Menampilkan <strong>{{ events.total }} event</strong> terverifikasi
+                Menampilkan
+                <strong>{{ events.total }} event</strong> terverifikasi
             </p>
             <div class="flex gap-2">
                 <select
                     :value="filter.kota"
                     class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-800"
-                    @change="terapkan({ kota: ($event.target as HTMLSelectElement).value })"
+                    @change="
+                        terapkan({
+                            kota: ($event.target as HTMLSelectElement).value,
+                        })
+                    "
                 >
                     <option value="">Semua kota</option>
-                    <option v-for="kota in pilihan.kota" :key="kota" :value="kota">
+                    <option
+                        v-for="kota in pilihan.kota"
+                        :key="kota"
+                        :value="kota"
+                    >
                         {{ kota }}
                     </option>
                 </select>
                 <select
                     :value="filter.urut"
                     class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-800"
-                    @change="terapkan({ urut: ($event.target as HTMLSelectElement).value })"
+                    @change="
+                        terapkan({
+                            urut: ($event.target as HTMLSelectElement).value,
+                        })
+                    "
                 >
                     <option value="terdekat">Terdekat</option>
                     <option value="terbaru">Terbaru</option>
@@ -171,14 +193,24 @@ defineOptions({
                     <div
                         class="absolute right-3 -bottom-3 flex flex-col items-center rounded-lg bg-white px-2 py-0.5 leading-tight shadow"
                     >
-                        <span class="text-sm font-extrabold">{{ e.tanggal.hari }}</span>
-                        <span class="text-[10px] font-bold">{{ e.tanggal.bulan }}</span>
+                        <span class="text-sm font-extrabold">{{
+                            e.tanggal.hari
+                        }}</span>
+                        <span class="text-[10px] font-bold">{{
+                            e.tanggal.bulan
+                        }}</span>
                     </div>
                 </div>
                 <div class="p-4">
-                    <p class="text-[11px] font-bold text-amber-900">{{ e.kategori }}</p>
-                    <h3 class="mt-0.5 text-base font-extrabold">{{ e.nama }}</h3>
-                    <p class="mt-1.5 flex items-center gap-1 text-xs text-neutral-500">
+                    <p class="text-[11px] font-bold text-amber-900">
+                        {{ e.kategori }}
+                    </p>
+                    <h3 class="mt-0.5 text-base font-extrabold">
+                        {{ e.nama }}
+                    </h3>
+                    <p
+                        class="mt-1.5 flex items-center gap-1 text-xs text-neutral-500"
+                    >
                         <MapPin class="size-3.5" /> {{ e.lokasi }}
                     </p>
                     <p class="mt-1 text-[11px] text-neutral-400">

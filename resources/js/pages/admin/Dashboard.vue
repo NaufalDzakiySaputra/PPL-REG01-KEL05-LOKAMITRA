@@ -13,7 +13,12 @@ const props = defineProps<{
         eventAktif: number;
         eventBerjalan: number;
         eventTerpublikasi: number;
-        menunggu: { total: number; akun: number; event: number; dokumen: number };
+        menunggu: {
+            total: number;
+            akun: number;
+            event: number;
+            dokumen: number;
+        };
         eventDiarsipkan: number;
         eventDiarsipkanBulanIni: number;
     };
@@ -30,7 +35,12 @@ const props = defineProps<{
         }[];
     };
     aktivitas: { oleh: string; teks: string; waktu: string; warna: number }[];
-    statusEvent: { label: string; kunci: string; jumlah: number; persen: number }[];
+    statusEvent: {
+        label: string;
+        kunci: string;
+        jumlah: number;
+        persen: number;
+    }[];
 }>();
 
 const maksTumbuh = computed(() =>
@@ -136,7 +146,9 @@ defineOptions({
                         :key="p.bulan + i"
                         class="flex h-full flex-1 flex-col items-center justify-end gap-1"
                     >
-                        <span class="text-xs font-semibold">{{ p.jumlah }}</span>
+                        <span class="text-xs font-semibold">{{
+                            p.jumlah
+                        }}</span>
                         <div
                             :class="[
                                 'w-full rounded-t-md',
@@ -148,7 +160,9 @@ defineOptions({
                                 height: `${Math.max(3, (p.jumlah / maksTumbuh) * 80)}%`,
                             }"
                         />
-                        <span class="text-xs text-neutral-500">{{ p.bulan }}</span>
+                        <span class="text-xs text-neutral-500">{{
+                            p.bulan
+                        }}</span>
                     </div>
                 </div>
             </DashCard>
@@ -200,7 +214,8 @@ defineOptions({
                                 <span
                                     :class="[
                                         'shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold',
-                                        warnaTag[it.jenis] ?? 'bg-neutral-100 text-neutral-700',
+                                        warnaTag[it.jenis] ??
+                                            'bg-neutral-100 text-neutral-700',
                                     ]"
                                 >
                                     {{ it.tag }}
@@ -255,7 +270,9 @@ defineOptions({
                                 <span class="font-semibold">{{ a.oleh }}</span>
                                 {{ a.teks }}
                             </p>
-                            <p class="text-xs text-neutral-500">{{ a.waktu }}</p>
+                            <p class="text-xs text-neutral-500">
+                                {{ a.waktu }}
+                            </p>
                         </div>
                     </li>
                 </ul>
@@ -264,7 +281,9 @@ defineOptions({
 
         <!-- status event -->
         <DashCard judul="Status event di platform">
-            <div class="flex h-3 w-full overflow-hidden rounded-full bg-neutral-200">
+            <div
+                class="flex h-3 w-full overflow-hidden rounded-full bg-neutral-200"
+            >
                 <div
                     v-for="s in statusEvent"
                     :key="s.kunci"
@@ -278,7 +297,9 @@ defineOptions({
                     :key="s.kunci"
                     class="flex items-center gap-2"
                 >
-                    <span :class="['size-2.5 rounded-sm', warnaStatus[s.kunci]]" />
+                    <span
+                        :class="['size-2.5 rounded-sm', warnaStatus[s.kunci]]"
+                    />
                     {{ s.label }}
                     <span class="font-bold">{{ s.jumlah }}</span>
                 </li>
