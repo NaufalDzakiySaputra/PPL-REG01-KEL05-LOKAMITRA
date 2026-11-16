@@ -36,7 +36,7 @@ class RoleMenuService
     ];
 
     private const MODUL_MITRA = [
-        'events.index', 'stakeholder.index', 'forum.index', 'chat.index', 'dokumen.index',
+        'events.index', 'forum.index', 'chat.index', 'dokumen.index',
         'tugas.index', 'timeline.index', 'pengumuman.index', 'riwayat.index',
     ];
 

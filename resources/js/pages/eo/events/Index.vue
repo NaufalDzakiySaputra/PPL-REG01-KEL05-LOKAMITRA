@@ -92,31 +92,35 @@ defineOptions({
             </div>
 
             <ul v-else class="divide-y divide-neutral-200/80">
-                <li
-                    v-for="e in events.data"
-                    :key="e.id"
-                    class="flex flex-wrap items-center justify-between gap-3 py-3"
-                >
-                    <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold">
-                            {{ e.nama }}
-                        </p>
-                        <p class="text-xs text-neutral-500">
-                            {{
-                                [e.periode, e.lokasi, e.kategori]
-                                    .filter(Boolean)
-                                    .join(' · ')
-                            }}
-                        </p>
-                    </div>
+                
+            <li
+                v-for="e in events.data"
+                :key="e.id"
+                class="flex flex-wrap items-center justify-between gap-3 py-4"
+            >
+                <div class="min-w-0 flex-1">
+                    <p class="truncate text-sm font-semibold">
+                        {{ e.nama }}
+                    </p>
+                    <p class="text-xs text-neutral-500">
+                        {{
+                            [e.periode, e.lokasi, e.kategori]
+                                .filter(Boolean)
+                                .join(' · ')
+                        }}
+                    </p>
+                </div>
+
+                <div class="flex shrink-0 items-center gap-3">
                     <span
                         :class="[
-                            'shrink-0 rounded-full px-3 py-1 text-xs font-semibold',
+                            'whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold',
                             status(e.status).kelas,
                         ]"
                     >
                         {{ status(e.status).teks }}
                     </span>
+
                     <Link
                         v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
                         :href="`/eo/events/${e.id}/ubah`"
@@ -124,7 +128,9 @@ defineOptions({
                     >
                         Ubah
                     </Link>
-                </li>
+                </div>
+            </li>
+
             </ul>
 
             <div
