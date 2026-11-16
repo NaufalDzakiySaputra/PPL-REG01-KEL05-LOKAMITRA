@@ -12,6 +12,16 @@ return [
         'pengunjung' => 'Pengunjung',
     ],
 
+    'kategori_event' => [
+        'Festival Budaya',  
+        'Konser Musik', 
+        'MICE',  
+        'Pameran',
+        'Workshop',  
+        'Olahraga',  
+        'Lainnya', 
+    ],
+
     // Informasi panel kiri pada halaman registrasi, disesuaikan dengan Figma.
     'registrasi_info' => [
         'eo' => [
