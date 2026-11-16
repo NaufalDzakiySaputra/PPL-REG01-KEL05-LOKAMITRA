@@ -1,14 +1,19 @@
 <script setup lang="ts">
-import AuthLayout from '@/layouts/auth/AuthSimpleLayout.vue';
+import AuthSimpleLayout from '@/layouts/auth/AuthSimpleLayout.vue';
 
-const { title = '', description = '' } = defineProps<{
+defineProps<{
     title?: string;
     description?: string;
+    branded?: boolean;
 }>();
 </script>
 
 <template>
-    <AuthLayout :title="title" :description="description">
+    <div v-if="branded" class="min-h-svh w-full bg-[#F6F4F2]">
         <slot />
-    </AuthLayout>
+    </div>
+
+    <AuthSimpleLayout v-else :title="title" :description="description">
+        <slot />
+    </AuthSimpleLayout>
 </template>
