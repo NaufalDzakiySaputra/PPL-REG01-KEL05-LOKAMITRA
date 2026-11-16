@@ -14,9 +14,13 @@ class EnsureUserHasRole
     {
         $user = $request->user();
 
+        $adalahApi = $request->is('api/*');
+
         // Route ini seharusnya juga dilindungi middleware auth.
         if (! $user) {
-            return redirect()->guest(route('login'));
+            return $adalahApi
+                ? response()->json(['message' => 'Unauthenticated.'], 401)
+                : redirect()->guest(route('login'));
         }
 
         // Jika status akun berubah saat sesi masih aktif, akhiri sesi tersebut.
@@ -31,14 +35,16 @@ class EnsureUserHasRole
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->withErrors([
-                'email' => $pesan,
-            ]);
+            return $adalahApi
+                ? response()->json(['message' => $pesan, 'code' => 'account_inactive'], 403)
+                : redirect()->route('login')->withErrors(['email' => $pesan]);
         }
 
         // Role yang tidak sesuai tidak boleh membuka dashboard role lain.
         if (! in_array($user->role, $roles, true)) {
-            abort(403, 'Anda tidak memiliki akses ke halaman ini.');
+            return $adalahApi
+                ? response()->json(['message' => 'Anda tidak memiliki akses ke halaman ini.'], 403)
+                : abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 
         return $next($request);
