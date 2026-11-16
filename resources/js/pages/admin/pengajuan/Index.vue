@@ -113,24 +113,49 @@ defineOptions({
 
         <!-- ringkasan: kartu angka yang sama dengan dashboard -->
         <section class="grid gap-3 sm:grid-cols-3">
-            <StatCard label="Menunggu verifikasi" :nilai="ringkasan.menunggu" aksen="admin" />
-            <StatCard label="Akun aktif" :nilai="ringkasan.aktif" aksen="admin" />
-            <StatCard label="Akun ditolak" :nilai="ringkasan.ditolak" aksen="admin" />
+            <StatCard
+                label="Menunggu verifikasi"
+                :nilai="ringkasan.menunggu"
+                aksen="admin"
+            />
+            <StatCard
+                label="Akun aktif"
+                :nilai="ringkasan.aktif"
+                aksen="admin"
+            />
+            <StatCard
+                label="Akun ditolak"
+                :nilai="ringkasan.ditolak"
+                aksen="admin"
+            />
         </section>
 
         <!-- filter -->
         <DashCard>
-            <form @submit.prevent="cari" class="grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_200px_auto]">
+            <form
+                @submit.prevent="cari"
+                class="grid gap-3 md:grid-cols-[minmax(0,1fr)_200px_200px_auto]"
+            >
                 <label class="flex flex-col gap-1 text-sm">
                     Cari pendaftar
                     <span class="relative">
-                        <Search class="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                        <input v-model="filters.q" type="search" placeholder="Nama, email, atau profil" class="w-full rounded-lg border bg-background py-2 pl-9 pr-3" />
+                        <Search
+                            class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                        />
+                        <input
+                            v-model="filters.q"
+                            type="search"
+                            placeholder="Nama, email, atau profil"
+                            class="w-full rounded-lg border bg-background py-2 pr-3 pl-9"
+                        />
                     </span>
                 </label>
                 <label class="flex flex-col gap-1 text-sm">
                     Status akun
-                    <select v-model="filters.status" class="rounded-lg border bg-background px-3 py-2">
+                    <select
+                        v-model="filters.status"
+                        class="rounded-lg border bg-background px-3 py-2"
+                    >
                         <option value="menunggu">Menunggu</option>
                         <option value="aktif">Aktif</option>
                         <option value="ditolak">Ditolak</option>
@@ -139,13 +164,28 @@ defineOptions({
                 </label>
                 <label class="flex flex-col gap-1 text-sm">
                     Role
-                    <select v-model="filters.role" class="rounded-lg border bg-background px-3 py-2">
+                    <select
+                        v-model="filters.role"
+                        class="rounded-lg border bg-background px-3 py-2"
+                    >
                         <option value="semua">Semua role</option>
-                        <option v-for="role in roles" :key="role.value" :value="role.value">{{ role.label }}</option>
+                        <option
+                            v-for="role in roles"
+                            :key="role.value"
+                            :value="role.value"
+                        >
+                            {{ role.label }}
+                        </option>
                     </select>
                 </label>
                 <div class="flex items-end">
-                    <button type="submit" :disabled="filters.processing" class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50">Terapkan</button>
+                    <button
+                        type="submit"
+                        :disabled="filters.processing"
+                        class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
+                    >
+                        Terapkan
+                    </button>
                 </div>
             </form>
         </DashCard>
@@ -153,24 +193,34 @@ defineOptions({
         <!-- daftar pendaftar -->
         <DashCard judul="Daftar pendaftar">
             <template #aksi>
-                <span class="text-xs text-muted-foreground">{{ pengajuan.total }} data</span>
+                <span class="text-xs text-muted-foreground"
+                    >{{ pengajuan.total }} data</span
+                >
             </template>
 
             <div v-if="pengajuan.data.length" class="overflow-x-auto">
                 <table class="w-full min-w-[850px] text-left text-sm">
-                    <thead class="border-b text-xs uppercase text-muted-foreground">
+                    <thead
+                        class="border-b text-xs text-muted-foreground uppercase"
+                    >
                         <tr>
                             <th class="px-3 py-3 font-medium">Pendaftar</th>
                             <th class="px-3 py-3 font-medium">Role</th>
                             <th class="px-3 py-3 font-medium">Profil</th>
                             <th class="px-3 py-3 font-medium">Dokumen</th>
                             <th class="px-3 py-3 font-medium">Status</th>
-                            <th class="px-3 py-3 font-medium">Tanggal daftar</th>
+                            <th class="px-3 py-3 font-medium">
+                                Tanggal daftar
+                            </th>
                             <th class="px-3 py-3 font-medium">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y">
-                        <tr v-for="item in pengajuan.data" :key="item.id" class="align-top">
+                        <tr
+                            v-for="item in pengajuan.data"
+                            :key="item.id"
+                            class="align-top"
+                        >
                             <td class="px-3 py-4">
                                 <p class="font-medium">{{ item.nama }}</p>
                                 <p class="mt-1 text-xs text-muted-foreground">
@@ -184,17 +234,33 @@ defineOptions({
                                 </p>
                             </td>
                             <td class="px-3 py-4">{{ item.role_label }}</td>
-                            <td class="px-3 py-4">{{ item.nama_profil || '-' }}</td>
+                            <td class="px-3 py-4">
+                                {{ item.nama_profil || '-' }}
+                            </td>
                             <td class="px-3 py-4">
                                 <span>{{ item.jumlah_dokumen }} file</span>
-                                <p v-if="item.dokumen_menunggu" class="mt-1 text-xs text-amber-700 dark:text-amber-300">{{ item.dokumen_menunggu }} menunggu</p>
+                                <p
+                                    v-if="item.dokumen_menunggu"
+                                    class="mt-1 text-xs text-amber-700 dark:text-amber-300"
+                                >
+                                    {{ item.dokumen_menunggu }} menunggu
+                                </p>
                             </td>
                             <td class="px-3 py-4">
-                                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium" :class="warnaStatus(item.status_akun)">{{ labelStatus(item.status_akun) }}</span>
+                                <span
+                                    class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
+                                    :class="warnaStatus(item.status_akun)"
+                                    >{{ labelStatus(item.status_akun) }}</span
+                                >
                             </td>
-                            <td class="px-3 py-4 text-muted-foreground">{{ tanggal(item.tanggal_daftar) }}</td>
+                            <td class="px-3 py-4 text-muted-foreground">
+                                {{ tanggal(item.tanggal_daftar) }}
+                            </td>
                             <td class="px-3 py-4">
-                                <Link :href="`/admin/pengajuan/${item.id}`" class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-medium hover:bg-muted">
+                                <Link
+                                    :href="`/admin/pengajuan/${item.id}`"
+                                    class="inline-flex items-center gap-1 rounded-lg border px-3 py-2 text-xs font-medium hover:bg-muted"
+                                >
                                     <ClipboardList class="h-3.5 w-3.5" /> Detail
                                 </Link>
                             </td>
@@ -214,7 +280,10 @@ defineOptions({
                 </p>
             </div>
 
-            <div v-if="pengajuan.links.length > 3" class="mt-4 flex flex-wrap justify-end gap-1 border-t pt-3">
+            <div
+                v-if="pengajuan.links.length > 3"
+                class="mt-4 flex flex-wrap justify-end gap-1 border-t pt-3"
+            >
                 <template v-for="(link, index) in pengajuan.links" :key="index">
                     <Link
                         v-if="link.url"

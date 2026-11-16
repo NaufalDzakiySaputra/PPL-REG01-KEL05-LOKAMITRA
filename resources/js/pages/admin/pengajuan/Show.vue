@@ -187,19 +187,35 @@ defineOptions({
                 </DashCard>
 
                 <DashCard :judul="`Data profil ${pengajuan.role_label}`">
-                    <dl v-if="pengajuan.profil.length" class="grid gap-4 sm:grid-cols-2">
-                        <div v-for="field in pengajuan.profil" :key="field.label" class="min-w-0">
-                            <dt class="text-xs text-muted-foreground">{{ field.label }}</dt>
-                            <dd class="mt-1 break-words text-sm font-medium">{{ field.value }}</dd>
+                    <dl
+                        v-if="pengajuan.profil.length"
+                        class="grid gap-4 sm:grid-cols-2"
+                    >
+                        <div
+                            v-for="field in pengajuan.profil"
+                            :key="field.label"
+                            class="min-w-0"
+                        >
+                            <dt class="text-xs text-muted-foreground">
+                                {{ field.label }}
+                            </dt>
+                            <dd class="mt-1 text-sm font-medium break-words">
+                                {{ field.value }}
+                            </dd>
                         </div>
                     </dl>
-                    <p v-else class="text-sm text-muted-foreground">Data profil belum tersedia.</p>
+                    <p v-else class="text-sm text-muted-foreground">
+                        Data profil belum tersedia.
+                    </p>
                 </DashCard>
             </div>
 
             <aside class="space-y-5">
                 <DashCard judul="Keputusan verifikasi akun">
-                    <p class="text-sm text-muted-foreground">Akun hanya dapat disetujui setelah profil lengkap dan semua dokumen yang diunggah sudah diperiksa.</p>
+                    <p class="text-sm text-muted-foreground">
+                        Akun hanya dapat disetujui setelah profil lengkap dan
+                        semua dokumen yang diunggah sudah diperiksa.
+                    </p>
 
                     <div
                         v-if="kendala_persetujuan.length"
@@ -281,11 +297,16 @@ defineOptions({
                             </button>
                         </form>
                     </div>
-                    <p v-else class="mt-4 text-sm text-muted-foreground">Pengajuan ini sudah diproses. Keputusan akun tidak dapat diubah melalui halaman ini.</p>
+                    <p v-else class="mt-4 text-sm text-muted-foreground">
+                        Pengajuan ini sudah diproses. Keputusan akun tidak dapat
+                        diubah melalui halaman ini.
+                    </p>
                 </DashCard>
 
                 <DashCard judul="Panduan pemeriksaan">
-                    <ol class="list-inside list-decimal space-y-2 text-sm text-muted-foreground">
+                    <ol
+                        class="list-inside list-decimal space-y-2 text-sm text-muted-foreground"
+                    >
                         <li>Pastikan nama dan kontak pendaftar masuk akal.</li>
                         <li>Periksa kesesuaian data profil dengan role.</li>
                         <li>
@@ -299,10 +320,17 @@ defineOptions({
         </section>
 
         <DashCard judul="Dokumen persyaratan">
-            <p class="-mt-1 text-sm text-muted-foreground">File tersimpan secara privat. Admin dapat melihat PDF/gambar di browser atau mengunduhnya.</p>
+            <p class="-mt-1 text-sm text-muted-foreground">
+                File tersimpan secara privat. Admin dapat melihat PDF/gambar di
+                browser atau mengunduhnya.
+            </p>
 
             <div v-if="pengajuan.dokumen.length" class="mt-4 divide-y border-t">
-                <article v-for="document in pengajuan.dokumen" :key="document.id" class="grid gap-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]">
+                <article
+                    v-for="document in pengajuan.dokumen"
+                    :key="document.id"
+                    class="grid gap-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]"
+                >
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
                             <h3 class="font-medium">{{ document.jenis }}</h3>
