@@ -1,3 +1,4 @@
+
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
@@ -7,6 +8,7 @@ use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eo\DashboardController as EoDashboardController;
 use App\Http\Controllers\Eo\EventController as EoEventController;
+use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
@@ -70,12 +72,23 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         ->name('eo.dashboard');
 
     Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
+        // Event
         Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
         Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
         Route::post('/events', [EoEventController::class, 'store'])->name('events.store');
         Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
         Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
         Route::put('/events/{event}', [EoEventController::class, 'update'])->whereNumber('event')->name('events.update');
+
+        // Direktori stakeholder
+        Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
+            ->name('stakeholders.index');
+
+        // Detail stakeholder
+        Route::get('/stakeholders/{type}/{user}', [EoStakeholderController::class, 'show'])
+            ->whereIn('type', ['pemda', 'vendor', 'komunitas', 'akademisi', 'media'])
+            ->whereNumber('user')
+            ->name('stakeholders.show');
     });
 
     Route::get('/vendor/dashboard', VendorDashboardController::class)

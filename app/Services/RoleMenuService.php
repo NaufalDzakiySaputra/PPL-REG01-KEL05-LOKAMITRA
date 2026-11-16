@@ -18,7 +18,7 @@ class RoleMenuService
     // Menu bersama untuk EO dan kelima mitra.
     private const MODUL = [
         'events.index' => ['Event', 'event'],
-        'stakeholder.index' => ['Stakeholder', 'stakeholder'],
+        'stakeholders.index' => ['Stakeholder', 'stakeholder'],
         'forum.index' => ['Forum Diskusi', 'forum'],
         'chat.index' => ['Group Chat', 'chat'],
         'dokumen.index' => ['Dokumen', 'dokumen'],
@@ -31,12 +31,12 @@ class RoleMenuService
 
     // Modul yang tampil per kelompok role (urutan = urutan di sidebar).
     private const MODUL_EO = [
-        'events.index', 'stakeholder.index', 'forum.index', 'chat.index', 'dokumen.index',
+        'events.index', 'stakeholders.index', 'forum.index', 'chat.index', 'dokumen.index',
         'tugas.index', 'timeline.index', 'pengumuman.index', 'laporan.index', 'riwayat.index',
     ];
 
     private const MODUL_MITRA = [
-        'events.index', 'forum.index', 'chat.index', 'dokumen.index',
+        'events.index', 'stakeholder.index', 'forum.index', 'chat.index', 'dokumen.index',
         'tugas.index', 'timeline.index', 'pengumuman.index', 'riwayat.index',
     ];
 
