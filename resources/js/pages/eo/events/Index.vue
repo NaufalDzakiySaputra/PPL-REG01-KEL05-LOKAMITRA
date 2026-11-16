@@ -117,9 +117,11 @@ defineOptions({
                     >
                         {{ status(e.status).teks }}
                     </span>
-                    <Link v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
+                    <Link
+                        v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
                         :href="`/eo/events/${e.id}/ubah`"
-                        class="text-xs font-semibold text-[#17564C] hover:underline">
+                        class="text-xs font-semibold text-[#17564C] hover:underline"
+                    >
                         Ubah
                     </Link>
                 </li>
