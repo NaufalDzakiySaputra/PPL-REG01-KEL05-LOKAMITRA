@@ -112,4 +112,12 @@ class Event extends Model
     {
         return $this->hasMany(Pengumuman::class, 'event_id', 'event_id');
     }
+
+    public function dapatDiubah(): bool
+    {
+        return ! in_array($this->status_event, [
+            self::STATUS_DITUTUP,
+            self::STATUS_DIARSIPKAN,
+        ], true);
+    }
 }
