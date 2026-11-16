@@ -2,36 +2,33 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
+use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
 {
     /**
-     * Akun Pengelola Platform untuk pengembangan.
-     * Login: admin@lokamitra.test / password  (ganti sebelum dipakai sungguhan)
+     * Akun admin pengembangan (password: "password").
+     * Jangan gunakan password contoh ini di production.
      */
     public function run(): void
     {
-        DB::table('users')->updateOrInsert(
+        $akun = User::updateOrCreate(
             ['email' => 'admin@lokamitra.test'],
             [
-                'name' => 'Pengelola Platform',
-                'password' => Hash::make('password'),
-                'role' => 'admin',
-                'status_akun' => 'aktif',
+                'name' => 'Admin Lokamitra',
+                'password' => 'password',
+                'nomor_telepon' => '081234567890',
+                'role' => User::ROLE_ADMIN,
+                'status_akun' => User::STATUS_AKTIF,
                 'email_verified_at' => now(),
-                'created_at' => now(),
-                'updated_at' => now(),
             ]
         );
 
-        $akunId = DB::table('users')->where('email', 'admin@lokamitra.test')->value('id');
-
-        DB::table('admin')->updateOrInsert(
-            ['akun_id' => $akunId],
-            ['created_at' => now(), 'updated_at' => now()]
+        Admin::updateOrCreate(
+            ['akun_id' => $akun->id],
+            []
         );
     }
 }

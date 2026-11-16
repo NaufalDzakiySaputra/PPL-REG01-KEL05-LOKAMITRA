@@ -12,30 +12,100 @@ use Illuminate\Support\Str;
  */
 class UserFactory extends Factory
 {
-    /**
-     * The current password being used by the factory.
-     */
-    protected static ?string $password;
+    protected static ?string $password = null;
 
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition(): array
     {
         return [
             'name' => fake()->name(),
             'email' => fake()->unique()->safeEmail(),
+            'nomor_telepon' => fake()->numerify('08##########'),
+            'role' => User::ROLE_VENDOR,
+            'status_akun' => User::STATUS_AKTIF,
             'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
         ];
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
+    public function admin(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_ADMIN,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function eo(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_EO,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function vendor(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_VENDOR,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function pemda(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_PEMDA,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function komunitas(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_KOMUNITAS,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function akademisi(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_AKADEMISI,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function media(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_MEDIA,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function pengunjung(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'role' => User::ROLE_PENGUNJUNG,
+            'status_akun' => User::STATUS_AKTIF,
+        ]);
+    }
+
+    public function menunggu(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_akun' => User::STATUS_MENUNGGU,
+        ]);
+    }
+
+    public function ditolak(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'status_akun' => User::STATUS_DITOLAK,
+        ]);
+    }
+
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [

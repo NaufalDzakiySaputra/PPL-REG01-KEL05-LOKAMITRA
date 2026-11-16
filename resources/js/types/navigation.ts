@@ -12,3 +12,17 @@ export type NavItem = {
     icon?: LucideIcon;
     isActive?: boolean;
 };
+
+// Menu sidebar per role (dikirim server lewat shared prop 'menu').
+export type MenuItemPeran = {
+    label: string;
+    ikon: string;
+    href: string | null;
+};
+
+export type MenuPeran = {
+    panel: string | null;
+    tema: 'terang' | 'gelap';
+    peranLabel: string;
+    items: MenuItemPeran[];
+};

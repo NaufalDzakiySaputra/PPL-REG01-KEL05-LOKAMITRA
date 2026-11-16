@@ -143,7 +143,7 @@ return [
     */
 
     'features' => [
-        Features::registration(),
+        // Registrasi publik memakai RegisterController custom.
         Features::resetPasswords(),
     ],
 

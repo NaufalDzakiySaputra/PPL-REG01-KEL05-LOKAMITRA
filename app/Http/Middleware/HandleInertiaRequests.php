@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\RoleMenuService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -41,6 +42,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            // Menu sidebar sesuai role (dihitung hanya saat dibutuhkan).
+            'menu' => fn () => $request->user()
+                ? app(RoleMenuService::class)->untuk($request->user())
+                : null,
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
     }
