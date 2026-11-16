@@ -40,14 +40,23 @@ defineProps<{
 }>();
 
 const labelStatusEvent: Record<string, { teks: string; kelas: string }> = {
-    dipublikasikan: { teks: 'Terverifikasi Admin', kelas: 'bg-emerald-100 text-emerald-800' },
-    menunggu_verifikasi: { teks: 'Menunggu verifikasi Admin', kelas: 'bg-amber-100 text-amber-800' },
+    dipublikasikan: {
+        teks: 'Terverifikasi Admin',
+        kelas: 'bg-emerald-100 text-emerald-800',
+    },
+    menunggu_verifikasi: {
+        teks: 'Menunggu verifikasi Admin',
+        kelas: 'bg-amber-100 text-amber-800',
+    },
     draft: { teks: 'Draft', kelas: 'bg-neutral-200 text-neutral-700' },
 };
 
 const labelKebutuhan: Record<string, { teks: string; kelas: string }> = {
     selesai: { teks: 'Selesai', kelas: 'bg-emerald-100 text-emerald-800' },
-    terkonfirmasi: { teks: 'Terkonfirmasi', kelas: 'bg-emerald-100 text-emerald-800' },
+    terkonfirmasi: {
+        teks: 'Terkonfirmasi',
+        kelas: 'bg-emerald-100 text-emerald-800',
+    },
     tersusun: { teks: 'Tersusun', kelas: 'bg-emerald-100 text-emerald-800' },
     berjalan: { teks: 'Berjalan', kelas: 'bg-amber-100 text-amber-800' },
     menunggu: { teks: 'Menunggu', kelas: 'bg-blue-100 text-blue-800' },
@@ -67,7 +76,10 @@ defineOptions({
     <div class="flex flex-col gap-4 p-4 md:p-6">
         <header class="flex items-start justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-extrabold" data-test="eo-dashboard-title">
+                <h1
+                    class="text-2xl font-extrabold"
+                    data-test="eo-dashboard-title"
+                >
                     Dashboard Event
                 </h1>
                 <p class="text-sm text-neutral-600 dark:text-muted-foreground">
@@ -101,22 +113,36 @@ defineOptions({
             <DashCard>
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <p class="text-[11px] font-semibold tracking-wide text-neutral-500">
+                        <p
+                            class="text-[11px] font-semibold tracking-wide text-neutral-500"
+                        >
                             EVENT AKTIF
                         </p>
                         <h2 class="text-xl font-extrabold">{{ event.nama }}</h2>
                         <p class="text-xs text-neutral-500">
-                            {{ [event.kategori, event.lokasi].filter(Boolean).join(' · ') }}
+                            {{
+                                [event.kategori, event.lokasi]
+                                    .filter(Boolean)
+                                    .join(' · ')
+                            }}
                         </p>
                     </div>
                     <div class="flex items-center gap-3">
                         <span
                             :class="[
                                 'rounded-full px-3 py-1 text-xs font-semibold',
-                                (labelStatusEvent[event.status] ?? labelStatusEvent.draft).kelas,
+                                (
+                                    labelStatusEvent[event.status] ??
+                                    labelStatusEvent.draft
+                                ).kelas,
                             ]"
                         >
-                            {{ (labelStatusEvent[event.status] ?? labelStatusEvent.draft).teks }}
+                            {{
+                                (
+                                    labelStatusEvent[event.status] ??
+                                    labelStatusEvent.draft
+                                ).teks
+                            }}
                         </span>
                         <Link
                             v-if="event.href"
@@ -169,16 +195,28 @@ defineOptions({
                             class="flex items-center justify-between gap-3 py-3"
                         >
                             <div>
-                                <p class="text-sm font-semibold">{{ k.judul }}</p>
-                                <p class="text-xs text-neutral-500">{{ k.keterangan }}</p>
+                                <p class="text-sm font-semibold">
+                                    {{ k.judul }}
+                                </p>
+                                <p class="text-xs text-neutral-500">
+                                    {{ k.keterangan }}
+                                </p>
                             </div>
                             <span
                                 :class="[
                                     'shrink-0 rounded-full px-3 py-1 text-xs font-semibold',
-                                    (labelKebutuhan[k.status] ?? labelKebutuhan.draft).kelas,
+                                    (
+                                        labelKebutuhan[k.status] ??
+                                        labelKebutuhan.draft
+                                    ).kelas,
                                 ]"
                             >
-                                {{ (labelKebutuhan[k.status] ?? labelKebutuhan.draft).teks }}
+                                {{
+                                    (
+                                        labelKebutuhan[k.status] ??
+                                        labelKebutuhan.draft
+                                    ).teks
+                                }}
                             </span>
                         </li>
                     </ul>
@@ -200,12 +238,20 @@ defineOptions({
                             <div
                                 class="flex size-12 shrink-0 flex-col items-center justify-center rounded-xl bg-[#FBE9C4] leading-tight text-[#8A5A00]"
                             >
-                                <span class="text-base font-extrabold">{{ t.hari }}</span>
-                                <span class="text-[10px] font-semibold">{{ t.bulan }}</span>
+                                <span class="text-base font-extrabold">{{
+                                    t.hari
+                                }}</span>
+                                <span class="text-[10px] font-semibold">{{
+                                    t.bulan
+                                }}</span>
                             </div>
                             <div>
-                                <p class="text-sm font-semibold">{{ t.judul }}</p>
-                                <p class="text-xs text-neutral-500">{{ t.untuk }}</p>
+                                <p class="text-sm font-semibold">
+                                    {{ t.judul }}
+                                </p>
+                                <p class="text-xs text-neutral-500">
+                                    {{ t.untuk }}
+                                </p>
                             </div>
                         </li>
                     </ul>
@@ -240,12 +286,18 @@ defineOptions({
                         Belum ada aktivitas.
                     </p>
                     <ul v-else class="divide-y divide-neutral-200/80">
-                        <li v-for="(a, i) in aktivitas" :key="i" class="py-3 text-sm">
+                        <li
+                            v-for="(a, i) in aktivitas"
+                            :key="i"
+                            class="py-3 text-sm"
+                        >
                             <p>
                                 <span class="font-semibold">{{ a.oleh }}</span>
                                 {{ a.teks }}
                             </p>
-                            <p class="text-xs text-neutral-500">{{ a.waktu }}</p>
+                            <p class="text-xs text-neutral-500">
+                                {{ a.waktu }}
+                            </p>
                         </li>
                     </ul>
                 </DashCard>

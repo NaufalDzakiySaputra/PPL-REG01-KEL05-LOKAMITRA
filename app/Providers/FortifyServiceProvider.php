@@ -52,7 +52,7 @@ class FortifyServiceProvider extends ServiceProvider
 
             $user = User::query()->where($kolomLogin, $email)->first();
 
-            if (!$user || !Hash::check($password, $user->password)) {
+            if (! $user || ! Hash::check($password, $user->password)) {
                 return null;
             }
 

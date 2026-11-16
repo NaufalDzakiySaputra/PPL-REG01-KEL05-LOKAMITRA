@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
-
 class EventController extends Controller
 {
     public function index(Request $request): Response
@@ -38,8 +37,9 @@ class EventController extends Controller
     public function create(Request $request): Response
     {
         abort_if($request->user()->eo === null, 403, 'Profil EO tidak ditemukan.');
+
         return Inertia::render('eo/events/Create', [
-            'kategori' => config('lokamitra.kategori_event',[]),
+            'kategori' => config('lokamitra.kategori_event', []),
         ]);
     }
 
@@ -54,7 +54,7 @@ class EventController extends Controller
             'type' => 'success',
             'message' => "Event \"{$event->nama_event}\" berhasil dibuat sebagai draft.",
         ]);
-        
+
         return to_route('eo.events.index');
     }
 
@@ -67,5 +67,4 @@ class EventController extends Controller
             : $mulai.' - '.FormatTanggal::ringkas($event->tanggal_selesai);
 
     }
-    
 }

@@ -8,7 +8,9 @@ defineProps<MitraDashboardProps>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Dashboard Pemerintah Daerah', href: '/pemda/dashboard' }],
+        breadcrumbs: [
+            { title: 'Dashboard Pemerintah Daerah', href: '/pemda/dashboard' },
+        ],
     },
 });
 </script>

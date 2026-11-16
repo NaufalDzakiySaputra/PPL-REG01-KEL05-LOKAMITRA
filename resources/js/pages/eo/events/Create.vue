@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, useForm} from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import InputError from '@/components/InputError.vue';
 
-defineProps<{kategori: string[]}>();
+defineProps<{ kategori: string[] }>();
 
 const hariIni = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
@@ -22,26 +22,26 @@ function samakanTanggal(): void {
     if (
         form.tanggal_mulai &&
         form.tanggal_selesai &&
-        form.tanggal_selesai <form.tanggal_mulai
+        form.tanggal_selesai < form.tanggal_mulai
     ) {
         form.tanggal_selesai = form.tanggal_mulai;
     }
 }
 
 function simpan(): void {
-    form.post('/eo/events', {preserveScroll: true});
+    form.post('/eo/events', { preserveScroll: true });
 }
 
 const kelasInput =
-        'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring aria-[invalid=true]:border-destructive';
+    'w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none transition focus-visible:ring-2 focus-visible:ring-ring aria-[invalid=true]:border-destructive';
 
 defineOptions({
     layout: {
         breadcrumbs: [
-            {title: 'Event', href: '/eo/events'},
-            {title: 'Buat Event Baru', href: '/eo/events/buat'},
-        ]
-    }
+            { title: 'Event', href: '/eo/events' },
+            { title: 'Buat Event Baru', href: '/eo/events/buat' },
+        ],
+    },
 });
 </script>
 
@@ -96,7 +96,10 @@ defineOptions({
 
                     <div class="grid gap-4 sm:grid-cols-2">
                         <div class="space-y-2">
-                            <label for="tanggal_mulai" class="text-sm font-medium">
+                            <label
+                                for="tanggal_mulai"
+                                class="text-sm font-medium"
+                            >
                                 Tanggal mulai
                                 <span class="text-destructive">*</span>
                             </label>
@@ -106,13 +109,18 @@ defineOptions({
                                 type="date"
                                 :min="hariIni"
                                 :class="kelasInput"
-                                :aria-invalid="Boolean(form.errors.tanggal_mulai)"
+                                :aria-invalid="
+                                    Boolean(form.errors.tanggal_mulai)
+                                "
                                 @change="samakanTanggal"
                             />
                             <InputError :message="form.errors.tanggal_mulai" />
                         </div>
                         <div class="space-y-2">
-                            <label for="tanggal_selesai" class="text-sm font-medium">
+                            <label
+                                for="tanggal_selesai"
+                                class="text-sm font-medium"
+                            >
                                 Tanggal selesai
                                 <span class="text-destructive">*</span>
                             </label>
@@ -122,9 +130,13 @@ defineOptions({
                                 type="date"
                                 :min="form.tanggal_mulai || hariIni"
                                 :class="kelasInput"
-                                :aria-invalid="Boolean(form.errors.tanggal_selesai)"
+                                :aria-invalid="
+                                    Boolean(form.errors.tanggal_selesai)
+                                "
                             />
-                            <InputError :message="form.errors.tanggal_selesai" />
+                            <InputError
+                                :message="form.errors.tanggal_selesai"
+                            />
                         </div>
                     </div>
 
@@ -175,7 +187,11 @@ defineOptions({
                             class="inline-flex items-center justify-center rounded-lg bg-[#17564C] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                             data-test="simpan-event"
                         >
-                            {{ form.processing ? 'Menyimpan...' : 'Simpan event' }}
+                            {{
+                                form.processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan event'
+                            }}
                         </button>
                     </div>
                 </form>
@@ -206,7 +222,9 @@ defineOptions({
                             2
                         </span>
                         <div>
-                            <p class="text-sm font-semibold">Verifikasi Admin</p>
+                            <p class="text-sm font-semibold">
+                                Verifikasi Admin
+                            </p>
                             <p class="text-xs text-neutral-500">
                                 Admin memeriksa kelengkapan data.
                             </p>

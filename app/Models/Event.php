@@ -31,9 +31,13 @@ class Event extends Model
     ];
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_MENUNGGU_VERIFIKASI = 'menunggu_verifikasi';
+
     public const STATUS_DIPUBLIKASIKAN = 'dipublikasikan';
+
     public const STATUS_DITUTUP = 'ditutup';
+
     public const STATUS_DIARSIPKAN = 'diarsipkan';
 
     // Event yang sudah dipublikasikan dan belum lewat tanggal selesainya.

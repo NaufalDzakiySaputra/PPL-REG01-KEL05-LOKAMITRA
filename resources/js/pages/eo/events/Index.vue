@@ -23,10 +23,19 @@ defineProps<{ events: Paginator<EventItem> }>();
 
 const labelStatus: Record<string, { teks: string; kelas: string }> = {
     draft: { teks: 'Draft', kelas: 'bg-neutral-200 text-neutral-700' },
-    menunggu_verifikasi: { teks: 'Menunggu verifikasi Admin', kelas: 'bg-amber-100 text-amber-800' },
-    dipublikasikan: { teks: 'Terverifikasi Admin', kelas: 'bg-emerald-100 text-emerald-800' },
+    menunggu_verifikasi: {
+        teks: 'Menunggu verifikasi Admin',
+        kelas: 'bg-amber-100 text-amber-800',
+    },
+    dipublikasikan: {
+        teks: 'Terverifikasi Admin',
+        kelas: 'bg-emerald-100 text-emerald-800',
+    },
     ditutup: { teks: 'Ditutup', kelas: 'bg-neutral-200 text-neutral-700' },
-    diarsipkan: { teks: 'Diarsipkan', kelas: 'bg-neutral-200 text-neutral-700' },
+    diarsipkan: {
+        teks: 'Diarsipkan',
+        kelas: 'bg-neutral-200 text-neutral-700',
+    },
 };
 
 function status(s: string): { teks: string; kelas: string } {
@@ -89,9 +98,15 @@ defineOptions({
                     class="flex flex-wrap items-center justify-between gap-3 py-3"
                 >
                     <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold">{{ e.nama }}</p>
+                        <p class="truncate text-sm font-semibold">
+                            {{ e.nama }}
+                        </p>
                         <p class="text-xs text-neutral-500">
-                            {{ [e.periode, e.lokasi, e.kategori].filter(Boolean).join(' · ') }}
+                            {{
+                                [e.periode, e.lokasi, e.kategori]
+                                    .filter(Boolean)
+                                    .join(' · ')
+                            }}
                         </p>
                     </div>
                     <span
@@ -115,7 +130,11 @@ defineOptions({
                         :href="link.url"
                         preserve-scroll
                         class="rounded-md border px-3 py-1.5 text-xs"
-                        :class="link.active ? 'bg-[#17564C] text-white' : 'hover:bg-muted'"
+                        :class="
+                            link.active
+                                ? 'bg-[#17564C] text-white'
+                                : 'hover:bg-muted'
+                        "
                     >
                         {{ labelHalaman(link.label) }}
                     </Link>
