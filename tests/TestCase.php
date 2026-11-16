@@ -7,7 +7,6 @@ use Laravel\Fortify\Features;
 
 abstract class TestCase extends BaseTestCase
 {
-
     protected function setUp(): void
     {
         parent::setUp();
@@ -15,7 +14,7 @@ abstract class TestCase extends BaseTestCase
         // Tidak membutuhkan file Vite saat menjalankan test.
         $this->withoutVite();
     }
-    
+
     protected function skipUnlessFortifyHas(string $feature, ?string $message = null): void
     {
         if (! Features::enabled($feature)) {

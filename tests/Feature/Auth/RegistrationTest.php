@@ -313,7 +313,7 @@ class RegistrationTest extends TestCase
         ]);
         $this->assertTrue($akun->vendor->is(VendorUmkm::firstOrFail()));
         $this->assertDatabaseCount('dokumen_persyaratan', 4);
-        $this->assertCount(4, Storage::disk('local')->allFiles('dokumen-persyaratan/' . $akun->id));
+        $this->assertCount(4, Storage::disk('local')->allFiles('dokumen-persyaratan/'.$akun->id));
     }
 
     public function test_vendor_registration_requires_business_data(): void

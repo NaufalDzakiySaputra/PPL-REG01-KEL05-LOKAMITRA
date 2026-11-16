@@ -99,8 +99,8 @@ class RegisterRequest extends FormRequest
         // Dokumen wajib dan opsional mengikuti konfigurasi masing-masing role.
         $dokumenRules = [];
 
-        foreach (config('lokamitra.dokumen_registrasi.' . $role, []) as $dokumen) {
-            $dokumenRules['documents.' . $dokumen['key']] = [
+        foreach (config('lokamitra.dokumen_registrasi.'.$role, []) as $dokumen) {
+            $dokumenRules['documents.'.$dokumen['key']] = [
                 $dokumen['wajib'] ? 'required' : 'nullable',
                 'file',
                 'mimes:pdf,jpg,jpeg,png',

@@ -34,17 +34,26 @@ class User extends Authenticatable
 
     // Daftar role Lokamitra.
     public const ROLE_ADMIN = 'admin';
+
     public const ROLE_EO = 'eo';
+
     public const ROLE_VENDOR = 'vendor';
+
     public const ROLE_PEMDA = 'pemda';
+
     public const ROLE_KOMUNITAS = 'komunitas';
+
     public const ROLE_AKADEMISI = 'akademisi';
+
     public const ROLE_MEDIA = 'media';
+
     public const ROLE_PENGUNJUNG = 'pengunjung';
 
     // Status akun.
     public const STATUS_MENUNGGU = 'menunggu';
+
     public const STATUS_AKTIF = 'aktif';
+
     public const STATUS_DITOLAK = 'ditolak';
 
     protected function casts(): array

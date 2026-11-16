@@ -15,14 +15,13 @@ class StoreEventRequest extends FormRequest
         return $this->user()?->eo !== null;
     }
 
-    
     public function rules(): array
     {
         return [
             'nama_event' => ['required', 'string', 'max:255'],
             'kategori_event' => ['nullable', 'string', Rule::in(config('lokamitra.kategori_event', []))],
-            'tanggal_mulai'=> ['required', 'date', 'after_or_equal:today'],
-            'tanggal_selesai'=> ['required', 'date', 'after_or_equal:tanggal_mulai'],
+            'tanggal_mulai' => ['required', 'date', 'after_or_equal:today'],
+            'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
             'lokasi' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string', 'max:50000'],
         ];

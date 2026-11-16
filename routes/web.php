@@ -2,17 +2,17 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PengajuanController;
+use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eo\DashboardController as EoDashboardController;
 use App\Http\Controllers\Eo\EventController as EoEventController;
-use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
-use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
-use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
-use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
+use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
+use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
 use App\Http\Controllers\Settings\RoleProfileController;
+use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
@@ -68,12 +68,12 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/eo/dashboard', EoDashboardController::class)
         ->middleware('role:eo')
         ->name('eo.dashboard');
-        
-    Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function (){
-        Route::get('/events',[EoEventController::class,'index'])->name('events.index');
-        Route::get('/events/buat',[EoEventController::class,'create'])->name('events.create');
-        Route::post('/events',[EoEventController::class,'store'])->name('events.store');
-        });
+
+    Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
+        Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
+        Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
+        Route::post('/events', [EoEventController::class, 'store'])->name('events.store');
+    });
 
     Route::get('/vendor/dashboard', VendorDashboardController::class)
         ->middleware('role:vendor')

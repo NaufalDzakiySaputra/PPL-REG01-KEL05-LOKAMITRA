@@ -119,7 +119,7 @@ class RoleProfileService
             RiwayatAktivitas::create([
                 'akun_id' => $user->id,
                 'jenis_aktivitas' => 'profil_peran_diperbarui',
-                'deskripsi' => 'Memperbarui informasi profil ' . $user->role . '.',
+                'deskripsi' => 'Memperbarui informasi profil '.$user->role.'.',
                 'waktu_aktivitas' => now(),
             ]);
         });

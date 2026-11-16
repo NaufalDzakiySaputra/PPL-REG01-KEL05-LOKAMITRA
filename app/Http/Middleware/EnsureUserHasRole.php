@@ -15,7 +15,7 @@ class EnsureUserHasRole
         $user = $request->user();
 
         // Route ini seharusnya juga dilindungi middleware auth.
-        if (!$user) {
+        if (! $user) {
             return redirect()->guest(route('login'));
         }
 
@@ -37,7 +37,7 @@ class EnsureUserHasRole
         }
 
         // Role yang tidak sesuai tidak boleh membuka dashboard role lain.
-        if (!in_array($user->role, $roles, true)) {
+        if (! in_array($user->role, $roles, true)) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
 

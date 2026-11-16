@@ -13,13 +13,13 @@ return [
     ],
 
     'kategori_event' => [
-        'Festival Budaya',  
-        'Konser Musik', 
-        'MICE',  
+        'Festival Budaya',
+        'Konser Musik',
+        'MICE',
         'Pameran',
-        'Workshop',  
-        'Olahraga',  
-        'Lainnya', 
+        'Workshop',
+        'Olahraga',
+        'Lainnya',
     ],
 
     // Informasi panel kiri pada halaman registrasi, disesuaikan dengan Figma.
