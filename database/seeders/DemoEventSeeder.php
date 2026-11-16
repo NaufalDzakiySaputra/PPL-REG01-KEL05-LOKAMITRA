@@ -58,13 +58,15 @@ class DemoEventSeeder extends Seeder
     }
 
     // Beberapa event dengan status berbeda; mengembalikan event utama milik EO contoh.
+    // Event utama sengaja dibuat sedang berlangsung agar Dashboard EO (yang memilih
+    // event aktif) menampilkan data demo lengkap: stakeholder, tugas, dan agenda.
     private function event(Eo $eo): Event
     {
         $daftar = [
-            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN],
+            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN],
             ['Konser Musik Akhir Tahun', 'Konser Musik', 'GOR Satria, Purwokerto', 60, 60, Event::STATUS_DIPUBLIKASIKAN],
             ['Forum MICE Jawa Tengah', 'MICE', 'Hotel Aston, Purwokerto', 45, 46, Event::STATUS_DIPUBLIKASIKAN],
-            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN],
+            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN],
             ['Pameran UMKM Banyumas', 'MICE', 'GOR Satria, Purwokerto', 90, 91, Event::STATUS_MENUNGGU_VERIFIKASI],
             ['Workshop Kriya Lokal', 'Festival Budaya', 'Balai Desa Kedungbanteng, Banyumas', 100, 100, Event::STATUS_DRAFT],
             ['Pasar Rakyat Lokal', 'Festival Budaya', 'Alun-alun, Purwokerto', -50, -49, Event::STATUS_DITUTUP],
