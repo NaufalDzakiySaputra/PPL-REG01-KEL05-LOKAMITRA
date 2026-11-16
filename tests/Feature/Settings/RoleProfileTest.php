@@ -29,8 +29,6 @@ class RoleProfileTest extends TestCase
             ->assertOk()
             ->assertInertia(fn (Assert $page) => $page
                 ->component('settings/RoleProfile')
-                ->where('roleLabel', 'Vendor/UMKM')
-                ->has('fields', 4)
             );
     }
 

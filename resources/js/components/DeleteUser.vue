@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
-import { useTemplateRef } from 'vue';
-import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
+import { ref } from 'vue';
+import { toast } from 'vue-sonner';
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
@@ -17,8 +16,35 @@ import {
     DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import { ApiError, api } from '@/lib/api';
 
-const passwordInput = useTemplateRef('passwordInput');
+const password = ref('');
+const errors = ref<Record<string, string>>({});
+const processing = ref(false);
+
+async function hapusAkun(): Promise<void> {
+    processing.value = true;
+    errors.value = {};
+
+    try {
+        await api.delete('/api/v1/me', { password: password.value });
+
+        toast.success('Akun berhasil dihapus.');
+        window.location.assign('/');
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errors.value = error.fieldErrors;
+            toast.error(error.message);
+        }
+    } finally {
+        processing.value = false;
+    }
+}
+
+function resetForm(): void {
+    password.value = '';
+    errors.value = {};
+}
 </script>
 
 <template>
@@ -39,26 +65,19 @@ const passwordInput = useTemplateRef('passwordInput');
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
-                        >Delete account</Button
+                    <Button
+                        variant="destructive"
+                        data-test="delete-user-button"
                     >
+                        Delete account
+                    </Button>
                 </DialogTrigger>
                 <DialogContent>
-                    <Form
-                        v-bind="ProfileController.destroy.form()"
-                        reset-on-success
-                        @error="() => passwordInput?.focus()"
-                        :options="{
-                            preserveScroll: true,
-                        }"
-                        class="space-y-6"
-                        v-slot="{ errors, processing, reset, clearErrors }"
-                    >
+                    <form class="space-y-6" @submit.prevent="hapusAkun">
                         <DialogHeader class="space-y-3">
-                            <DialogTitle
-                                >Are you sure you want to delete your
-                                account?</DialogTitle
-                            >
+                            <DialogTitle>
+                                Are you sure you want to delete your account?
+                            </DialogTitle>
                             <DialogDescription>
                                 Once your account is deleted, all of its
                                 resources and data will also be permanently
@@ -69,14 +88,15 @@ const passwordInput = useTemplateRef('passwordInput');
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only"
-                                >Password</Label
-                            >
+                            <Label for="password" class="sr-only">
+                                Password
+                            </Label>
                             <PasswordInput
                                 id="password"
+                                v-model="password"
                                 name="password"
-                                ref="passwordInput"
                                 placeholder="Password"
+                                :disabled="processing"
                             />
                             <InputError :message="errors.password" />
                         </div>
@@ -84,13 +104,9 @@ const passwordInput = useTemplateRef('passwordInput');
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
                                 <Button
+                                    type="button"
                                     variant="secondary"
-                                    @click="
-                                        () => {
-                                            clearErrors();
-                                            reset();
-                                        }
-                                    "
+                                    @click="resetForm"
                                 >
                                     Cancel
                                 </Button>
@@ -102,10 +118,14 @@ const passwordInput = useTemplateRef('passwordInput');
                                 :disabled="processing"
                                 data-test="confirm-delete-user-button"
                             >
-                                Delete account
+                                {{
+                                    processing
+                                        ? 'Deleting...'
+                                        : 'Delete account'
+                                }}
                             </Button>
                         </DialogFooter>
-                    </Form>
+                    </form>
                 </DialogContent>
             </Dialog>
         </div>

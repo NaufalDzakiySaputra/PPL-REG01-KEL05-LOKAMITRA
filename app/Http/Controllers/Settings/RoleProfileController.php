@@ -3,40 +3,24 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\RoleProfileUpdateRequest;
 use App\Services\RoleProfileService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class RoleProfileController extends Controller
 {
-    // Menampilkan profil organisasi atau profil peran milik akun aktif.
-    public function edit(Request $request, RoleProfileService $service): Response
+    // Halaman hanya merender shell; data profil diambil lewat REST API.
+    public function edit(): Response
     {
-        return Inertia::render('settings/RoleProfile', [
-            'roleLabel' => $service->roleLabel($request->user()),
-            'fields' => $service->fieldsForForm($request->user()),
-        ]);
+        return Inertia::render('settings/RoleProfile');
     }
 
     // Memperbarui field profil yang memang boleh diedit oleh pemilik akun.
-    public function update(Request $request, RoleProfileService $service): RedirectResponse
+    public function update(RoleProfileUpdateRequest $request, RoleProfileService $service): RedirectResponse
     {
-        $data = $request->validate(
-            $service->rules($request->user()),
-            [
-                'required' => ':attribute wajib diisi.',
-                'url' => ':attribute harus berupa URL yang valid.',
-                'integer' => ':attribute harus berupa angka.',
-                'min' => ':attribute minimal :min.',
-            ],
-            collect($service->definitions($request->user()))
-                ->mapWithKeys(fn (array $field, string $key) => [$key => $field['label']])
-                ->all()
-        );
-
-        $service->update($request->user(), $data);
+        $service->update($request->user(), $request->validated());
 
         Inertia::flash('toast', [
             'type' => 'success',
