@@ -102,6 +102,27 @@ class EventController extends Controller
         return to_route('eo.events.show', $event);
     }
 
+    public function tutup(Request $request, Event $event): RedirectResponse
+    {
+        $this->pastikanPemilik($request, $event);
+
+        // Update atomik: hanya berhasil jika masih dipublikasikan dan sudah
+        // mencapai tanggal selesai, jadi klik ganda tidak menimpa tanggal_ditutup.
+        $berhasil = Event::query()
+            ->whereKey($event->getKey())
+            ->where('status_event', Event::STATUS_DIPUBLIKASIKAN)
+            ->update([
+                'status_event' => Event::STATUS_DITUTUP,
+                'tanggal_ditutup' => now(),
+            ]);
+
+        Inertia::flash('toast', $berhasil
+            ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" telah ditutup dan siap diarsipkan Admin."]
+            : ['type' => 'error', 'message' => 'Hanya event yang sudah terverifikasi (dipublikasikan) yang dapat ditutup.']);
+
+        return back();
+    }
+
     private function pastikanPemilik(Request $request, Event $event): void
     {
         abort_unless(
@@ -125,6 +146,11 @@ class EventController extends Controller
             'status' => $event->status_event,
             'dapat_diubah' => $event->dapatDiubah(),
             'diperbarui' => FormatTanggal::denganJam($event->updated_at),
+            'dapat_ditutup' => $event->dapatDitutup(),
+            'siap_diarsipkan' => $event->status_event === Event::STATUS_DITUTUP,
+            'tanggal_ditutup' => $event->tanggal_ditutup
+                ? FormatTanggal::denganJam($event->tanggal_ditutup)
+                : null,
         ];
     }
 }

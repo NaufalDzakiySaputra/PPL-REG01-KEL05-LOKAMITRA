@@ -92,6 +92,7 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
             Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
             Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
             Route::put('/events/{event}', [EoEventController::class, 'update'])->whereNumber('event')->name('events.update');
+            Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
 
             // Direktori stakeholder
             Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
