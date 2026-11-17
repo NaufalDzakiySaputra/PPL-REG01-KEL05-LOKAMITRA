@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
-import { Search, ClipboardList } from '@lucide/vue';
+import { Head, Link } from '@inertiajs/vue3';
+import { ClipboardList, Search } from '@lucide/vue';
+import { onMounted, reactive, ref } from 'vue';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import StatCard from '@/components/dashboard/StatCard.vue';
+import { ApiError, api } from '@/lib/api';
 
 interface PengajuanItem {
     id: number;
@@ -13,6 +15,7 @@ interface PengajuanItem {
     role_label: string;
     nama_profil: string | null;
     status_akun: string;
+    status_verifikasi?: string;
     jumlah_dokumen: number;
     dokumen_menunggu: number;
     tanggal_daftar: string | null;
@@ -26,31 +29,84 @@ interface Paginator<T> {
     total: number;
 }
 
-const props = defineProps<{
-    pengajuan: Paginator<PengajuanItem>;
-    ringkasan: { menunggu: number; aktif: number; ditolak: number };
-    filter: { status: string; role: string; q: string };
-    roles: { value: string; label: string }[];
-}>();
+interface Ringkasan {
+    menunggu: number;
+    aktif: number;
+    ditolak: number;
+}
 
-const filters = useForm({
-    status: props.filter.status,
+interface DaftarResponse {
+    pengajuan: Paginator<PengajuanItem>;
+    ringkasan: Ringkasan;
+    filter: { status: string; status_api?: string; role: string; q: string };
+    roles: { value: string; label: string }[];
+}
+
+const props = defineProps<DaftarResponse>();
+
+const daftar = ref<Paginator<PengajuanItem>>(props.pengajuan);
+const ringkasan = ref<Ringkasan>(props.ringkasan);
+const roles = ref(props.roles);
+const filters = reactive({
+    status: props.filter.status_api ?? props.filter.status,
     role: props.filter.role,
     q: props.filter.q,
 });
 
-function cari(): void {
-    filters.get('/admin/pengajuan', {
-        preserveState: true,
-        preserveScroll: true,
-        replace: true,
-    });
+const loading = ref(false);
+const errorMessage = ref('');
+
+async function muat(url = '/api/v1/admin/pengajuan'): Promise<void> {
+    loading.value = true;
+    errorMessage.value = '';
+
+    try {
+        const response = await api.get<DaftarResponse>(url);
+
+        daftar.value = response.pengajuan;
+        ringkasan.value = response.ringkasan;
+        roles.value = response.roles;
+        filters.status = response.filter.status_api ?? response.filter.status;
+        filters.role = response.filter.role;
+        filters.q = response.filter.q;
+    } catch (error) {
+        errorMessage.value =
+            error instanceof ApiError
+                ? error.message
+                : 'Tidak dapat memuat data pengajuan.';
+    } finally {
+        loading.value = false;
+    }
 }
+
+async function cari(): Promise<void> {
+    const query = new URLSearchParams({
+        status: filters.status,
+        role: filters.role,
+        q: filters.q,
+    });
+
+    await muat(`/api/v1/admin/pengajuan?${query.toString()}`);
+}
+
+function muatHalaman(url: string | null): void {
+    if (url) void muat(url);
+}
+
+onMounted(() => {
+    // Data awal sudah dikirim Inertia; muat ulang agar filter dan pagination
+    // selalu berasal dari endpoint API yang sama dengan form aksi.
+    void muat();
+});
 
 function labelStatus(status: string): string {
     return (
         (
             {
+                pending: 'Menunggu',
+                verified: 'Terverifikasi',
+                rejected: 'Ditolak',
+                // Nilai database tetap didukung untuk data awal dari Inertia.
                 menunggu: 'Menunggu',
                 aktif: 'Aktif',
                 ditolak: 'Ditolak',
@@ -60,9 +116,9 @@ function labelStatus(status: string): string {
 }
 
 function warnaStatus(status: string): string {
-    if (status === 'aktif')
+    if (status === 'verified' || status === 'aktif')
         return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
-    if (status === 'ditolak')
+    if (status === 'rejected' || status === 'ditolak')
         return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300';
     return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
 }
@@ -111,6 +167,13 @@ defineOptions({
             >
         </header>
 
+        <div
+            v-if="errorMessage"
+            class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+            {{ errorMessage }}
+        </div>
+
         <!-- ringkasan: kartu angka yang sama dengan dashboard -->
         <section class="grid gap-3 sm:grid-cols-3">
             <StatCard
@@ -156,9 +219,9 @@ defineOptions({
                         v-model="filters.status"
                         class="rounded-lg border bg-background px-3 py-2"
                     >
-                        <option value="menunggu">Menunggu</option>
-                        <option value="aktif">Aktif</option>
-                        <option value="ditolak">Ditolak</option>
+                        <option value="pending">Menunggu</option>
+                        <option value="verified">Terverifikasi</option>
+                        <option value="rejected">Ditolak</option>
                         <option value="semua">Semua status</option>
                     </select>
                 </label>
@@ -181,10 +244,10 @@ defineOptions({
                 <div class="flex items-end">
                     <button
                         type="submit"
-                        :disabled="filters.processing"
+                        :disabled="loading"
                         class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-50"
                     >
-                        Terapkan
+                        {{ loading ? 'Memuat...' : 'Terapkan' }}
                     </button>
                 </div>
             </form>
@@ -194,11 +257,11 @@ defineOptions({
         <DashCard judul="Daftar pendaftar">
             <template #aksi>
                 <span class="text-xs text-muted-foreground"
-                    >{{ pengajuan.total }} data</span
+                    >{{ daftar.total }} data</span
                 >
             </template>
 
-            <div v-if="pengajuan.data.length" class="overflow-x-auto">
+            <div v-if="daftar.data.length" class="overflow-x-auto">
                 <table class="w-full min-w-[850px] text-left text-sm">
                     <thead
                         class="border-b text-xs text-muted-foreground uppercase"
@@ -217,7 +280,7 @@ defineOptions({
                     </thead>
                     <tbody class="divide-y">
                         <tr
-                            v-for="item in pengajuan.data"
+                            v-for="item in daftar.data"
                             :key="item.id"
                             class="align-top"
                         >
@@ -249,8 +312,18 @@ defineOptions({
                             <td class="px-3 py-4">
                                 <span
                                     class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium"
-                                    :class="warnaStatus(item.status_akun)"
-                                    >{{ labelStatus(item.status_akun) }}</span
+                                    :class="
+                                        warnaStatus(
+                                            item.status_verifikasi ??
+                                                item.status_akun,
+                                        )
+                                    "
+                                    >{{
+                                        labelStatus(
+                                            item.status_verifikasi ??
+                                                item.status_akun,
+                                        )
+                                    }}</span
                                 >
                             </td>
                             <td class="px-3 py-4 text-muted-foreground">
@@ -281,24 +354,24 @@ defineOptions({
             </div>
 
             <div
-                v-if="pengajuan.links.length > 3"
+                v-if="daftar.links.length > 3"
                 class="mt-4 flex flex-wrap justify-end gap-1 border-t pt-3"
             >
-                <template v-for="(link, index) in pengajuan.links" :key="index">
-                    <Link
+                <template v-for="(link, index) in daftar.links" :key="index">
+                    <button
                         v-if="link.url"
-                        :href="link.url"
-                        preserve-state
-                        preserve-scroll
-                        class="rounded-md border px-3 py-1.5 text-xs"
+                        type="button"
+                        :disabled="loading"
+                        class="rounded-md border px-3 py-1.5 text-xs disabled:opacity-50"
                         :class="
                             link.active
                                 ? 'bg-primary text-primary-foreground'
                                 : 'hover:bg-muted'
                         "
+                        @click="muatHalaman(link.url)"
                     >
                         {{ labelHalaman(link.label) }}
-                    </Link>
+                    </button>
                     <span
                         v-else
                         class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground opacity-50"

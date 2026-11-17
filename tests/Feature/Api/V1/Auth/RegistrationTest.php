@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Feature\Auth;
+namespace Tests\Feature\Api\V1\Auth;
 
 use App\Models\Akademisi;
 use App\Models\Eo;
@@ -22,6 +22,13 @@ class RegistrationTest extends TestCase
     {
         parent::setUp();
         Storage::fake('local');
+    }
+
+    private function daftar(array $data)
+    {
+        return $this->post('/api/v1/register', $data, [
+            'Accept' => 'application/json',
+        ]);
     }
 
     private function dataEo(array $override = []): array
@@ -193,8 +200,8 @@ class RegistrationTest extends TestCase
 
     public function test_eo_can_register_and_waits_for_verification(): void
     {
-        $this->post(route('register.store'), $this->dataEo())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataEo())
+            ->assertCreated();
 
         $this->assertGuest();
 
@@ -217,15 +224,14 @@ class RegistrationTest extends TestCase
 
     public function test_eo_registration_requires_account_and_eo_data(): void
     {
-        $this->from(route('register'))
-            ->post(route('register.store'), $this->dataEo([
-                'name' => '',
-                'email' => 'bukan-email',
-                'nomor_telepon' => '',
-                'nama_eo_organisasi' => '',
-            ]))
-            ->assertRedirect(route('register'))
-            ->assertSessionHasErrors(['name', 'email', 'nomor_telepon', 'nama_eo_organisasi']);
+        $this->daftar($this->dataEo([
+            'name' => '',
+            'email' => 'bukan-email',
+            'nomor_telepon' => '',
+            'nama_eo_organisasi' => '',
+        ]))
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['name', 'email', 'nomor_telepon', 'nama_eo_organisasi']);
 
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('eo', 0);
@@ -236,10 +242,9 @@ class RegistrationTest extends TestCase
         $data = $this->dataEo();
         unset($data['documents']['profil_legalitas_eo']);
 
-        $this->from(route('register'))
-            ->post(route('register.store'), $data)
-            ->assertRedirect(route('register'))
-            ->assertSessionHasErrors(['documents.profil_legalitas_eo']);
+        $this->daftar($data)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['documents.profil_legalitas_eo']);
 
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('dokumen_persyaratan', 0);
@@ -250,7 +255,7 @@ class RegistrationTest extends TestCase
         $data = $this->dataEo();
         $data['documents']['nib_npwp'] = UploadedFile::fake()->create('nib-atau-npwp.pdf', 100, 'application/pdf');
 
-        $this->post(route('register.store'), $data)->assertRedirect(route('login'));
+        $this->daftar($data)->assertCreated();
 
         $akun = User::where('email', 'budi@eo-contoh.test')->firstOrFail();
         $this->assertDatabaseCount('dokumen_persyaratan', 4);
@@ -263,8 +268,8 @@ class RegistrationTest extends TestCase
 
     public function test_visitor_registration_creates_active_account_without_profile_or_documents(): void
     {
-        $this->post(route('register.store'), $this->dataPengunjung())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataPengunjung())
+            ->assertCreated();
 
         $this->assertGuest();
 
@@ -276,10 +281,10 @@ class RegistrationTest extends TestCase
         $this->assertDatabaseCount('eo', 0);
         $this->assertDatabaseCount('vendor_umkm', 0);
 
-        $this->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $akun->email,
             'password' => 'password',
-        ])->assertRedirect(route('pengunjung.dashboard'));
+        ])->assertOk()->assertJsonPath('redirect', route('pengunjung.dashboard'));
 
         $this->assertAuthenticatedAs($akun);
     }
@@ -288,17 +293,17 @@ class RegistrationTest extends TestCase
     {
         User::factory()->create(['email' => 'budi@eo-contoh.test']);
 
-        $this->post(route('register.store'), $this->dataEo([
+        $this->daftar($this->dataEo([
             'password_confirmation' => 'beda',
-        ]))->assertSessionHasErrors(['email', 'password']);
+        ]))->assertJsonValidationErrors(['email', 'password']);
 
         $this->assertDatabaseCount('eo', 0);
     }
 
     public function test_vendor_can_register_with_linked_profile(): void
     {
-        $this->post(route('register.store'), $this->dataVendor())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataVendor())
+            ->assertCreated();
 
         $this->assertGuest();
         $akun = User::where('email', 'siti@vendor-contoh.test')->firstOrFail();
@@ -318,28 +323,28 @@ class RegistrationTest extends TestCase
 
     public function test_vendor_registration_requires_business_data(): void
     {
-        $this->post(route('register.store'), $this->dataVendor([
+        $this->daftar($this->dataVendor([
             'nama_usaha' => '',
             'nama_pemilik' => '',
-        ]))->assertSessionHasErrors(['nama_usaha', 'nama_pemilik']);
+        ]))->assertJsonValidationErrors(['nama_usaha', 'nama_pemilik']);
 
         $this->assertDatabaseCount('vendor_umkm', 0);
     }
 
     public function test_unsupported_or_missing_role_is_rejected(): void
     {
-        $this->post(route('register.store'), $this->dataEo(['role' => 'admin']))
-            ->assertSessionHasErrors('role');
+        $this->daftar($this->dataEo(['role' => 'admin']))
+            ->assertJsonValidationErrors('role');
 
-        $this->post(route('register.store'), $this->dataEo(['role' => '']))
-            ->assertSessionHasErrors('role');
+        $this->daftar($this->dataEo(['role' => '']))
+            ->assertJsonValidationErrors('role');
 
         $this->assertDatabaseCount('users', 0);
     }
 
     public function test_email_is_stored_lowercase(): void
     {
-        $this->post(route('register.store'), $this->dataEo([
+        $this->daftar($this->dataEo([
             'email' => 'Budi@EO-Contoh.test',
         ]));
 
@@ -350,8 +355,8 @@ class RegistrationTest extends TestCase
 
     public function test_pemda_can_register_with_linked_profile(): void
     {
-        $this->post(route('register.store'), $this->dataPemda())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataPemda())
+            ->assertCreated();
 
         $this->assertGuest();
         $akun = User::where('email', 'rina@dinas-contoh.test')->firstOrFail();
@@ -372,11 +377,11 @@ class RegistrationTest extends TestCase
 
     public function test_pemda_registration_requires_instansi_position_and_region(): void
     {
-        $this->post(route('register.store'), $this->dataPemda([
+        $this->daftar($this->dataPemda([
             'nama_instansi' => '',
             'jabatan_pendaftar' => '',
             'wilayah_kerja' => '',
-        ]))->assertSessionHasErrors([
+        ]))->assertJsonValidationErrors([
             'nama_instansi', 'jabatan_pendaftar', 'wilayah_kerja',
         ]);
 
@@ -386,8 +391,8 @@ class RegistrationTest extends TestCase
 
     public function test_komunitas_can_register_with_linked_profile(): void
     {
-        $this->post(route('register.store'), $this->dataKomunitas())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataKomunitas())
+            ->assertCreated();
 
         $this->assertGuest();
         $akun = User::where('email', 'dedi@komunitas-contoh.test')->firstOrFail();
@@ -408,18 +413,18 @@ class RegistrationTest extends TestCase
 
     public function test_komunitas_registration_requires_name_and_activity_type(): void
     {
-        $this->post(route('register.store'), $this->dataKomunitas([
+        $this->daftar($this->dataKomunitas([
             'nama_komunitas' => '',
             'bidang_kegiatan' => '',
-        ]))->assertSessionHasErrors(['nama_komunitas', 'bidang_kegiatan']);
+        ]))->assertJsonValidationErrors(['nama_komunitas', 'bidang_kegiatan']);
 
         $this->assertDatabaseCount('komunitas_lokal', 0);
     }
 
     public function test_akademisi_can_register_with_linked_profile(): void
     {
-        $this->post(route('register.store'), $this->dataAkademisi())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataAkademisi())
+            ->assertCreated();
 
         $this->assertGuest();
         $akun = User::where('email', 'maya@kampus-contoh.test')->firstOrFail();
@@ -440,18 +445,18 @@ class RegistrationTest extends TestCase
 
     public function test_akademisi_registration_requires_institution_and_expertise(): void
     {
-        $this->post(route('register.store'), $this->dataAkademisi([
+        $this->daftar($this->dataAkademisi([
             'nama_institusi' => '',
             'bidang_keahlian' => '',
-        ]))->assertSessionHasErrors(['nama_institusi', 'bidang_keahlian']);
+        ]))->assertJsonValidationErrors(['nama_institusi', 'bidang_keahlian']);
 
         $this->assertDatabaseCount('akademisi', 0);
     }
 
     public function test_media_can_register_with_linked_profile(): void
     {
-        $this->post(route('register.store'), $this->dataMedia())
-            ->assertRedirect(route('login'));
+        $this->daftar($this->dataMedia())
+            ->assertCreated();
 
         $this->assertGuest();
         $akun = User::where('email', 'andi@media-contoh.test')->firstOrFail();
@@ -472,10 +477,10 @@ class RegistrationTest extends TestCase
 
     public function test_media_registration_requires_name_and_media_type(): void
     {
-        $this->post(route('register.store'), $this->dataMedia([
+        $this->daftar($this->dataMedia([
             'nama_media' => '',
             'jenis_media' => '',
-        ]))->assertSessionHasErrors(['nama_media', 'jenis_media']);
+        ]))->assertJsonValidationErrors(['nama_media', 'jenis_media']);
 
         $this->assertDatabaseCount('media', 0);
     }
@@ -485,10 +490,9 @@ class RegistrationTest extends TestCase
         $data = $this->dataVendor();
         unset($data['documents']['nib']);
 
-        $this->from(route('register'))
-            ->post(route('register.store'), $data)
-            ->assertRedirect(route('register'))
-            ->assertSessionHasErrors(['documents.nib']);
+        $this->daftar($data)
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['documents.nib']);
 
         $this->assertDatabaseCount('users', 0);
         $this->assertDatabaseCount('dokumen_persyaratan', 0);
@@ -496,7 +500,7 @@ class RegistrationTest extends TestCase
 
     public function test_fields_of_another_role_are_not_required_or_saved(): void
     {
-        $this->post(route('register.store'), $this->dataPemda())
+        $this->daftar($this->dataPemda())
             ->assertSessionHasNoErrors();
 
         $this->assertDatabaseCount('eo', 0);

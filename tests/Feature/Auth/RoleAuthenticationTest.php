@@ -33,15 +33,15 @@ class RoleAuthenticationTest extends TestCase
         ];
 
         foreach ($akunDanRoute as $email => $routeName) {
-            $response = $this->post(route('login.store'), [
+            $response = $this->postJson('/api/v1/login', [
                 'email' => $email,
                 'password' => 'password',
             ]);
 
-            $response->assertRedirect(route($routeName));
+            $response->assertOk()->assertJsonPath('redirect', route($routeName));
             $this->assertAuthenticated();
 
-            $this->post(route('logout'))->assertRedirect(route('login'));
+            $this->postJson('/api/v1/logout')->assertOk();
             $this->assertGuest();
         }
     }
@@ -50,10 +50,10 @@ class RoleAuthenticationTest extends TestCase
     {
         $user = User::factory()->vendor()->menunggu()->create();
 
-        $this->from(route('login'))->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }
@@ -62,10 +62,10 @@ class RoleAuthenticationTest extends TestCase
     {
         $user = User::factory()->vendor()->ditolak()->create();
 
-        $this->from(route('login'))->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $user->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }

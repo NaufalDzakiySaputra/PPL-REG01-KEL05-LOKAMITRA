@@ -2,17 +2,20 @@
 
 namespace App\Http\Responses;
 
-use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
 
 class LogoutResponse implements LogoutResponseContract
 {
+    /**
+     * Response logout untuk API JSON dan halaman web.
+     */
     public function toResponse($request)
     {
-        // kalau request berupa JSON
         if ($request->wantsJson()) {
-            return new JsonResponse('', 204);
+            return response()->json([
+                'message' => 'Logout berhasil.',
+            ]);
         }
 
         // membersihkan riwayat halaman Inertia

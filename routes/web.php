@@ -15,13 +15,41 @@ use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController as FortifyAuthenticatedSessionController;
+use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
+use Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController;
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// Halaman autentikasi Fortify. Transaksi login/logout sudah pindah ke /api/v1.
+Route::middleware('guest:web')->group(function () {
+    Route::get('/login', [FortifyAuthenticatedSessionController::class, 'create'])
+        ->name('login');
+
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+});
+
+// Route bawaan Fortify yang belum termasuk lingkup migrasi.
+Route::middleware('auth:web')->group(function () {
+    Route::get('/user/confirm-password', [ConfirmablePasswordController::class, 'show'])
+        ->name('password.confirm');
+
+    Route::post('/user/confirm-password', [ConfirmablePasswordController::class, 'store'])
+        ->name('password.confirm.store');
+
+    Route::get('/user/confirmed-password-status', [ConfirmedPasswordStatusController::class, 'show'])
+        ->name('password.confirmation');
+});
 
 // Registrasi publik Lokamitra menggunakan validasi dan pembuatan profil custom.
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 });
 
 // Semua dashboard wajib login dan tidak disimpan dalam cache browser.
@@ -40,29 +68,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/pengajuan/{pengajuan}', [PengajuanController::class, 'show'])
             ->whereNumber('pengajuan')
             ->name('pengajuan.show');
-
-        Route::post('/pengajuan/{pengajuan}/setujui', [PengajuanController::class, 'approve'])
-            ->whereNumber('pengajuan')
-            ->name('pengajuan.approve');
-
-        Route::post('/pengajuan/{pengajuan}/tolak', [PengajuanController::class, 'reject'])
-            ->whereNumber('pengajuan')
-            ->name('pengajuan.reject');
-
-        Route::post('/pengajuan/{pengajuan}/dokumen/{dokumen}/periksa', [PengajuanController::class, 'reviewDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.review');
-
-        Route::get('/pengajuan/{pengajuan}/dokumen/{dokumen}/lihat', [PengajuanController::class, 'previewDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.preview');
-
-        Route::get('/pengajuan/{pengajuan}/dokumen/{dokumen}/unduh', [PengajuanController::class, 'downloadDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.download');
     });
 
     Route::get('/eo/dashboard', EoDashboardController::class)
@@ -106,9 +111,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::middleware('role:eo,vendor,pemda,komunitas,akademisi,media')->group(function () {
         Route::get('/profil-peran', [RoleProfileController::class, 'edit'])
             ->name('role-profile.edit');
-
-        Route::put('/profil-peran', [RoleProfileController::class, 'update'])
-            ->name('role-profile.update');
     });
 });
 

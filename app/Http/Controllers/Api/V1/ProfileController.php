@@ -49,6 +49,8 @@ class ProfileController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return response()->json(null, 204);
+        return response()->json([
+            'message' => 'Akun Anda berhasil dihapus secara permanen.',
+        ]);
     }
 }

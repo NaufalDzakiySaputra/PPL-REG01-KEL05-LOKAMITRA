@@ -5,6 +5,8 @@ namespace App\Providers;
 use App\Actions\Fortify\ResetUserPassword;
 use App\Http\Responses\LoginResponse;
 use App\Http\Responses\LogoutResponse;
+use App\Http\Responses\PasswordResetSuccessResponse;
+use App\Http\Responses\SentPasswordResetLinkResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -17,6 +19,8 @@ use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use Laravel\Fortify\Contracts\LogoutResponse as LogoutResponseContract;
+use Laravel\Fortify\Contracts\PasswordResetResponse as PasswordResetResponseContract;
+use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse as SuccessfulPasswordResetLinkRequestResponseContract;
 use Laravel\Fortify\Features;
 use Laravel\Fortify\Fortify;
 
@@ -25,8 +29,14 @@ class FortifyServiceProvider extends ServiceProvider
     // Daftarkan response login dan logout khusus Lokamitra.
     public function register(): void
     {
+        // Route transaksi autentikasi dipindahkan ke /api/v1; Fortify hanya
+        // menyediakan action, pipeline, dan view yang kita daftarkan ulang.
+        Fortify::ignoreRoutes();
+
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
         $this->app->singleton(LogoutResponseContract::class, LogoutResponse::class);
+        $this->app->singleton(SuccessfulPasswordResetLinkRequestResponseContract::class, SentPasswordResetLinkResponse::class);
+        $this->app->singleton(PasswordResetResponseContract::class, PasswordResetSuccessResponse::class);
     }
 
     public function boot(): void
