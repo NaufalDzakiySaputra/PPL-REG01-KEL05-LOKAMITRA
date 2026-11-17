@@ -3,6 +3,7 @@
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\PengajuanController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
@@ -65,6 +66,15 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
             ->whereNumber('pengajuan')
             ->whereNumber('dokumen')
             ->name('pengajuan.documents.download');
+
+        Route::get('/events',[AdminEventController::class, 'index'])
+            ->name('events.index');
+        
+        Route::post('/events/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
+            ->whereNumber('event')
+            ->name('events.verify');
+
+        
     });
 
             Route::get('/eo/dashboard', EoDashboardController::class)
