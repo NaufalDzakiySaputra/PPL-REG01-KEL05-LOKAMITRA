@@ -2,10 +2,14 @@
 
 namespace App\Http\Responses;
 
+use App\Http\Resources\UserResource;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class LoginResponse implements LoginResponseContract
 {
+    /**
+     * Response login untuk API JSON dan halaman web.
+     */
     public function toResponse($request)
     {
         $user = $request->user();
@@ -16,6 +20,8 @@ class LoginResponse implements LoginResponseContract
 
         if ($request->wantsJson()) {
             return response()->json([
+                'message' => 'Login berhasil.',
+                'data' => UserResource::make($user)->resolve($request),
                 'redirect' => route($routeName),
             ]);
         }

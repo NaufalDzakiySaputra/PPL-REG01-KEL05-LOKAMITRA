@@ -20,23 +20,24 @@ class AuthenticationTest extends TestCase
     {
         $user = User::factory()->vendor()->create();
 
-        $response = $this->post(route('login.store'), [
+        $response = $this->postJson('/api/v1/login', [
             'email' => $user->email,
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('vendor.dashboard'));
+        $response->assertOk()
+            ->assertJsonPath('redirect', route('vendor.dashboard'));
     }
 
     public function test_users_cannot_authenticate_with_invalid_password(): void
     {
         $user = User::factory()->vendor()->create();
 
-        $this->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $user->email,
             'password' => 'wrong-password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }
@@ -46,8 +47,8 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->vendor()->create();
 
         $this->actingAs($user)
-            ->post(route('logout'))
-            ->assertRedirect(route('login'));
+            ->postJson('/api/v1/logout')
+            ->assertOk();
 
         $this->assertGuest();
     }
@@ -63,11 +64,11 @@ class AuthenticationTest extends TestCase
 
         // Lima percobaan pertama masih diproses oleh login.
         for ($percobaan = 1; $percobaan <= 5; $percobaan++) {
-            $this->post(route('login.store'), $data)->assertRedirect();
+            $this->postJson('/api/v1/login', $data)->assertUnprocessable();
         }
 
         // Percobaan keenam harus terkena pembatasan.
-        $this->post(route('login.store'), $data)->assertTooManyRequests();
+        $this->postJson('/api/v1/login', $data)->assertTooManyRequests();
     }
 
     public function test_seeded_sample_account_of_every_additional_role_can_log_in(): void
@@ -84,13 +85,13 @@ class AuthenticationTest extends TestCase
         ];
 
         foreach ($akunDanRoute as $email => $routeName) {
-            $this->post(route('login.store'), [
+            $this->postJson('/api/v1/login', [
                 'email' => $email,
                 'password' => 'password',
-            ])->assertRedirect(route($routeName));
+            ])->assertOk()->assertJsonPath('redirect', route($routeName));
 
             $this->assertAuthenticated();
-            $this->post(route('logout'));
+            $this->postJson('/api/v1/logout')->assertOk();
             $this->assertGuest();
         }
     }
