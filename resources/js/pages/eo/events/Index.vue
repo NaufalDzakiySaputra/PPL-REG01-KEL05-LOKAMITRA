@@ -99,9 +99,13 @@ defineOptions({
                 class="flex flex-wrap items-center justify-between gap-3 py-4"
             >
                 <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-semibold">
+                    <Link
+                        :href="`/eo/events/${e.id}`"
+                        class="block truncate text-sm font-semibold hover:underline"
+                        data-test="lihat-event"
+                    >
                         {{ e.nama }}
-                    </p>
+                    </Link>
                     <p class="text-xs text-neutral-500">
                         {{
                             [e.periode, e.lokasi, e.kategori]
@@ -120,6 +124,12 @@ defineOptions({
                     >
                         {{ status(e.status).teks }}
                     </span>
+                    <Link
+                        :href="`/eo/events/${e.id}`"
+                        class="text-xs font-semibold text-neutral-600 hover:underline"
+                    >
+                        Lihat
+                    </Link>
 
                     <Link
                         v-if="!['ditutup', 'diarsipkan'].includes(e.status)"

@@ -120,4 +120,9 @@ class Event extends Model
             self::STATUS_DIARSIPKAN,
         ], true);
     }
+
+    public function dapatDitutup(): bool
+    {
+        return $this->status_event === self::STATUS_DIPUBLIKASIKAN;
+    }
 }
