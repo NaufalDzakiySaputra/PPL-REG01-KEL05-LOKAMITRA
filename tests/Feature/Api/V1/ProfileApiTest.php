@@ -83,10 +83,14 @@ class ProfileApiTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->deleteJson('/api/v1/me', [
+            ->deleteJson('/api/v1/profile', [
                 'password' => 'password',
             ])
-            ->assertNoContent();
+            ->assertOk()
+            ->assertJsonPath(
+                'message',
+                'Akun Anda berhasil dihapus secara permanen.'
+            );
 
         $this->assertGuest();
         $this->assertNull($user->fresh());
@@ -97,7 +101,7 @@ class ProfileApiTest extends TestCase
         $user = User::factory()->create();
 
         $this->actingAs($user)
-            ->deleteJson('/api/v1/me', [
+            ->deleteJson('/api/v1/profile', [
                 'password' => 'wrong-password',
             ])
             ->assertUnprocessable()

@@ -27,9 +27,14 @@ async function hapusAkun(): Promise<void> {
     errors.value = {};
 
     try {
-        await api.delete('/api/v1/me', { password: password.value });
+        const response = await api.delete<{ message: string }>(
+            '/api/v1/profile',
+            { password: password.value },
+        );
 
-        toast.success('Akun berhasil dihapus.');
+        toast.success(
+            response.message ?? 'Akun Anda berhasil dihapus secara permanen.',
+        );
         window.location.assign('/');
     } catch (error) {
         if (error instanceof ApiError) {

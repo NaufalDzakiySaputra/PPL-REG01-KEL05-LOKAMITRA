@@ -5,7 +5,7 @@ type ErrorPayload = {
     errors?: ValidationErrors;
 };
 
-type HttpMethod = 'GET' | 'PATCH' | 'PUT' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 type CsrfHeader = {
     name: 'X-CSRF-TOKEN' | 'X-XSRF-TOKEN';
@@ -108,12 +108,17 @@ async function request<T>(
     sudahMencobaUlang = false,
 ): Promise<T> {
     const csrf = currentCsrf();
+    const isFormData = body instanceof FormData;
 
     const headers: Record<string, string> = {
         Accept: 'application/json',
-        'Content-Type': 'application/json',
         'X-Requested-With': 'XMLHttpRequest',
     };
+
+    // FormData harus membiarkan browser mengisi Content-Type beserta boundary.
+    if (!isFormData) {
+        headers['Content-Type'] = 'application/json';
+    }
 
     if (csrf) {
         headers[csrf.name] = csrf.value;
@@ -126,7 +131,7 @@ async function request<T>(
     };
 
     if (body !== undefined) {
-        options.body = JSON.stringify(body);
+        options.body = isFormData ? body : JSON.stringify(body);
     }
 
     const response = await fetch(url, options);
@@ -176,6 +181,9 @@ async function request<T>(
 
 export const api = {
     get: <T>(url: string): Promise<T> => request<T>('GET', url),
+
+    post: <T>(url: string, body?: unknown): Promise<T> =>
+        request<T>('POST', url, body),
 
     patch: <T>(url: string, body: unknown): Promise<T> =>
         request<T>('PATCH', url, body),

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { Check, Upload } from '@lucide/vue';
 import { computed, reactive, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
@@ -15,14 +15,25 @@ import {
     authLabelClass,
     authLinkClass,
 } from '@/lib/authStyles';
+import { ApiError, api } from '@/lib/api';
 import { profilFields, type DocumentRequirement } from '@/lib/registerFields';
 import { login } from '@/routes';
-import { store } from '@/routes/register';
 
 type RoleInfo = {
     title: string;
     description: string;
     checklist: string[];
+};
+
+type RegisterResponse = {
+    message: string;
+    data: {
+        id: number;
+        name: string;
+        email: string;
+        role: string;
+        status_verifikasi: string;
+    };
 };
 
 const props = defineProps<{
@@ -35,6 +46,10 @@ const props = defineProps<{
 
 const role = ref(props.defaultRole);
 const selectedFiles = reactive<Record<string, string>>({});
+const formElement = ref<HTMLFormElement | null>(null);
+const errors = ref<Record<string, string>>({});
+const pesanError = ref('');
+const processing = ref(false);
 
 const currentRoleInfo = computed(() => props.roleInfo[role.value]);
 const currentDocuments = computed(
@@ -50,6 +65,35 @@ const selectedRoleLabel = computed(
 function onFileChange(key: string, event: Event): void {
     const input = event.target as HTMLInputElement;
     selectedFiles[key] = input.files?.[0]?.name ?? '';
+}
+
+async function kirim(): Promise<void> {
+    if (!formElement.value) {
+        return;
+    }
+
+    processing.value = true;
+    errors.value = {};
+    pesanError.value = '';
+
+    try {
+        const data = new FormData(formElement.value);
+
+        await api.post<RegisterResponse>('/api/v1/register', data);
+
+        window.location.assign('/login');
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errors.value = error.fieldErrors;
+            pesanError.value =
+                Object.keys(error.fieldErrors).length > 0 ? '' : error.message;
+        } else {
+            pesanError.value =
+                'Tidak dapat terhubung ke server. Silakan coba lagi.';
+        }
+    } finally {
+        processing.value = false;
+    }
 }
 
 defineOptions({
@@ -111,11 +155,17 @@ defineOptions({
             class="flex justify-center px-4 py-6 sm:px-7 sm:py-9 lg:px-9 lg:py-10"
         >
             <div class="w-full max-w-[760px]">
-                <Form
-                    v-bind="store.form()"
-                    :reset-on-success="['password', 'password_confirmation']"
-                    v-slot="{ errors, processing }"
+                <div
+                    v-if="pesanError"
+                    class="mb-5 rounded-lg border border-[#E4B4B0] bg-[#FDF1F0] px-4 py-3 text-sm text-[#8B2E26]"
+                >
+                    {{ pesanError }}
+                </div>
+
+                <form
+                    ref="formElement"
                     class="rounded-xl border border-[#83B67B] bg-white p-5 shadow-sm sm:p-7 lg:p-8"
+                    @submit.prevent="kirim"
                 >
                     <h2
                         class="mb-7 text-center text-xl font-bold text-[#161A18]"
@@ -456,7 +506,7 @@ defineOptions({
                             >Masuk</TextLink
                         >
                     </p>
-                </Form>
+                </form>
             </div>
         </section>
     </main>
