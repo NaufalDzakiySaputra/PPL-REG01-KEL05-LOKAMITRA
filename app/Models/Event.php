@@ -125,4 +125,9 @@ class Event extends Model
     {
         return $this->status_event === self::STATUS_DIPUBLIKASIKAN;
     }
+
+    public function scopeSiapDiarsipkan(Builder $query): Builder
+    {
+        return $query->where('status_event', self::STATUS_DITUTUP);
+    }
 }
