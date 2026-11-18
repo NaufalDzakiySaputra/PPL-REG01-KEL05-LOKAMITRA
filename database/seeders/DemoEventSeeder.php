@@ -2,14 +2,17 @@
 
 namespace Database\Seeders;
 
+use App\Models\DokumenEvent;
 use App\Models\Eo;
 use App\Models\Event;
 use App\Models\KeanggotaanEvent;
+use App\Models\KontakDaruratEvent;
 use App\Models\RiwayatAktivitas;
 use App\Models\Timeline;
 use App\Models\Tugas;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * Data demo agar dashboard terisi seperti rancangan Figma.
@@ -29,6 +32,7 @@ class DemoEventSeeder extends Seeder
         $this->penggunaTambahan();
         $event = $this->event($eo);
         $this->keanggotaanDanTugas($event);
+        $this->informasiPublik($eo);
         $this->riwayat($eo);
     }
 
@@ -200,5 +204,87 @@ TEKS],
             ['akun_id' => $eo->akun_id, 'jenis_aktivitas' => 'membuat_event'],
             ['deskripsi' => 'Membuat event Festival Budaya Banyumas.', 'waktu_aktivitas' => now()->subDays(25)]
         );
+    }
+
+    // Informasi publik untuk halaman detail pengunjung (PBI-035):
+    // rundown lengkap, kontak darurat (maks. dua), dan dokumen/layout.
+    private function informasiPublik(Eo $eo): void
+    {
+        $event = Event::where('eo_id', $eo->eo_id)
+            ->berjalan()
+            ->first()
+            ?? Event::where('eo_id', $eo->eo_id)
+                ->where('status_event', Event::STATUS_DIPUBLIKASIKAN)
+                ->orderByDesc('tanggal_mulai')
+                ->first();
+
+        if (! $event) {
+            return;
+        }
+
+        $hariEvent = $event->tanggal_mulai->format('Y-m-d');
+
+        $rundown = [
+            ['Pembukaan dan sambutan panitia', 'Penyambutan pengunjung serta sambutan perwakilan pemerintah daerah.', $hariEvent.' 08:00:00', $hariEvent.' 09:00:00'],
+            ['Pertunjukan seni tradisional', 'Slawat kreasi, ebeg, dan angguk dari sanggar seni se-Banyumas.', $hariEvent.' 09:00:00', $hariEvent.' 11:30:00'],
+            ['Makan siang bersama & kuliner Bumi Ayem', 'Pengunjung menikmati kuliner khas dari stand-stand festival.', $hariEvent.' 11:30:00', $hariEvent.' 13:00:00'],
+            ['Panggung musik akustik', 'Penampilan musisi lokal membawakan lagu daerah dan pop.', $hariEvent.' 13:00:00', $hariEvent.' 15:30:00'],
+            ['Penghargaan dan penutupan', 'Pemberian penghargaan ke sanggar terbaik dan foto bersama.', $hariEvent.' 15:30:00', $hariEvent.' 17:00:00'],
+        ];
+
+        foreach ($rundown as [$judul, $deskripsi, $mulai, $selesai]) {
+            Timeline::updateOrCreate(
+                ['event_id' => $event->event_id, 'judul_aktivitas' => $judul],
+                ['deskripsi' => $deskripsi, 'waktu_mulai' => $mulai, 'waktu_selesai' => $selesai]
+            );
+        }
+
+        KontakDaruratEvent::updateOrCreate(
+            ['event_id' => $event->event_id, 'nama' => 'Panitia Pos Utama'],
+            ['nomor_telepon' => '081234567801']
+        );
+        KontakDaruratEvent::updateOrCreate(
+            ['event_id' => $event->event_id, 'nama' => 'Koordinator Medis'],
+            ['nomor_telepon' => '081234567802']
+        );
+
+        // Dokumen dummy supaya tombol unduh bisa dicoba saat demo.
+        $dokumen = [
+            ['Denah Venue Festival.pdf', 'dokumen-event/denah-venue-festival.pdf'],
+            ['Panduan Peserta.pdf', 'dokumen-event/panduan-peserta.pdf'],
+        ];
+
+        foreach ($dokumen as [$nama, $lokasi]) {
+            if (! Storage::disk('public')->exists($lokasi)) {
+                Storage::disk('public')->put($lokasi, $this->pdfDummy($nama));
+            }
+
+            DokumenEvent::updateOrCreate(
+                ['event_id' => $event->event_id, 'nama_dokumen' => $nama],
+                [
+                    'pengunggah_akun_id' => $eo->akun_id,
+                    'lokasi_file' => $lokasi,
+                    'tanggal_upload' => now(),
+                ]
+            );
+        }
+    }
+
+    // Konten PDF minimal agar file bisa dibuka/diunduh.
+    private function pdfDummy(string $judul): string
+    {
+        $teks = utf8_decode($judul.' - Lokamitra (dokumen demo).');
+
+        return "%PDF-1.4\n"
+            ."1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n"
+            ."2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj\n"
+            .'3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] '
+            ."/Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n"
+            .'4 0 obj << /Length '.(strlen($teks) + 40)." >> stream\n"
+            .'BT /F1 14 Tf 72 720 Td ('.$teks.") Tj ET\n"
+            ."endstream endobj\n"
+            ."5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n"
+            ."trailer << /Root 1 0 R >>\n"
+            .'%%EOF';
     }
 }

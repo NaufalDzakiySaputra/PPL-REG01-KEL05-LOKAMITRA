@@ -33,6 +33,9 @@ Route::get('/events', [EventPublikController::class, 'index'])->name('events.ind
 Route::get('/events/{event}', [EventPublikController::class, 'show'])
     ->name('events.show')
     ->whereNumber('event');
+Route::get('/events/{event}/dokumen/{dokumen}', [EventPublikController::class, 'unduhDokumen'])
+    ->name('events.dokumen')
+    ->whereNumber(['event', 'dokumen']);
 
 // Halaman autentikasi Fortify. Transaksi login/logout sudah pindah ke /api/v1.
 Route::middleware('guest:web')->group(function () {
