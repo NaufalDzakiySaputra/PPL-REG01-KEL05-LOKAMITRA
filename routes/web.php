@@ -13,6 +13,7 @@ use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
+use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
@@ -25,6 +26,12 @@ use Laravel\Fortify\Http\Controllers\NewPasswordController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// Informasi event publik (F-06): daftar event terverifikasi tanpa login.
+Route::get('/events', [EventPublikController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventPublikController::class, 'show'])
+    ->name('events.show')
+    ->whereNumber('event');
 
 // Halaman autentikasi Fortify. Transaksi login/logout sudah pindah ke /api/v1.
 Route::middleware('guest:web')->group(function () {
