@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Eo;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Eo\UpdateEventRequest;
 use App\Models\Event;
 use App\Support\FormatTanggal;
 use Illuminate\Http\RedirectResponse;
@@ -71,19 +70,6 @@ class EventController extends Controller
             'event' => $this->detail($event),
             'kategori' => config('lokamitra.kategori_event', []),
         ]);
-    }
-
-    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
-    {
-        // validated() hanya berisi field form, jadi eo_id dan status tidak bisa diubah.
-        $event->update($request->validated());
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil diperbarui.",
-        ]);
-
-        return to_route('eo.events.show', $event);
     }
 
     public function tutup(Request $request, Event $event): RedirectResponse
