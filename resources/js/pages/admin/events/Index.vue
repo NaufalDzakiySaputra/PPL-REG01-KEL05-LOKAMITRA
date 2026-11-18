@@ -77,7 +77,6 @@ type Aksi = 'verifikasi' | 'arsip';
 const teksAksi: Record<
     Aksi,
     {
-        url: string;
         judul: string;
         deskripsi: string;
         tombol: string;
@@ -85,7 +84,6 @@ const teksAksi: Record<
     }
 > = {
     verifikasi: {
-        url: 'verifikasi',
         judul: 'Verifikasi event ini?',
         deskripsi:
             'Pastikan data event sudah diperiksa. Setelah diverifikasi, event langsung tampil di daftar publik.',
@@ -93,7 +91,6 @@ const teksAksi: Record<
         proses: 'Memverifikasi...',
     },
     arsip: {
-        url: 'arsipkan',
         judul: 'Arsipkan event ini?',
         deskripsi:
             'Event dipindahkan ke tab Arsip dan tidak tampil sebagai event aktif. Datanya tetap tersimpan untuk ditinjau kembali.',
@@ -147,18 +144,26 @@ async function konfirmasi(): Promise<void> {
         return;
     }
 
-    router.post(
-        `/admin/events/${dipilih.value.id}/${teksAksi[aksi.value].url}`,
-        {},
-        {
-            preserveScroll: true,
-            onStart: () => (memproses.value = true),
-            onFinish: () => {
-                memproses.value = false;
-                dialogBuka.value = false;
-            },
-        },
-    );
+    if (aksi.value === 'arsip') {
+        memproses.value = true;
+        try {
+            const response = await api.post<ApiResponse<unknown>>(
+                `/api/v1/admin/events/${dipilih.value.id}/arsip`,
+            );
+            toast.success(response.message ?? 'Event berhasil diarsipkan.');
+            dialogBuka.value = false;
+            router.reload();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                toast.error(error.message);
+            } else {
+                toast.error('Gagal mengarsipkan event.');
+            }
+        } finally {
+            memproses.value = false;
+        }
+        return;
+    }
 }
 
 function keterangan(e: EventItem): string {
