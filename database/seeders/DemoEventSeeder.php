@@ -61,23 +61,68 @@ class DemoEventSeeder extends Seeder
     private function event(Eo $eo): Event
     {
         $daftar = [
-            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN],
-            ['Konser Musik Akhir Tahun', 'Konser Musik', 'GOR Satria, Purwokerto', 60, 60, Event::STATUS_DIPUBLIKASIKAN],
-            ['Forum MICE Jawa Tengah', 'MICE', 'Hotel Aston, Purwokerto', 45, 46, Event::STATUS_DIPUBLIKASIKAN],
-            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN],
-            ['Pameran UMKM Banyumas', 'MICE', 'GOR Satria, Purwokerto', 90, 91, Event::STATUS_MENUNGGU_VERIFIKASI],
-            ['Workshop Kriya Lokal', 'Festival Budaya', 'Balai Desa Kedungbanteng, Banyumas', 100, 100, Event::STATUS_DRAFT],
-            ['Pasar Rakyat Lokal', 'Festival Budaya', 'Alun-alun, Purwokerto', -50, -49, Event::STATUS_DITUTUP],
-            ['Karnaval Desa Wisata', 'Festival Budaya', 'Desa Wisata, Banyumas', -120, -119, Event::STATUS_DIARSIPKAN],
+            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+Festival Budaya Banyumas adalah perayaan tahunan yang menampilkan kekayaan
+budaya daerah Banyumas dalam satu panggung besar. Pengunjung dapat menikmati
+pertunjukan slawat kreasi, ebeg, angguk, akulturasi budaya, serta pameran
+kerajinan tangan para perajin lokal.
+
+Selain rangkaian pagelaran, festival ini juga menghadirkan Kuliner Bumi
+Ayem, panggung musik akustik, dan ruang edukasi budaya untuk pelajar.
+Acara ini terbuka untuk umum dan diperkirakan dihadiri ribuan pengunjung
+dari berbagai daerah di Jawa Tengah.
+TEKS],
+            ['Konser Musik Akhir Tahun', 'Konser Musik', 'GOR Satria, Purwokerto', 60, 60, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+Konser Musik Akhir Tahun menghadirkan deretan musisi lokal dan nasional
+untuk merayakan pergantian tahun bersama. Panggung selama tiga jam akan
+menampilkan balada, rock, hingga musik tradisional Banyumas.
+
+Disediakan juga area kuliner, booth merchandise resmi, dan zona ramah
+disabilitas. Pendaftaran peserta gratis dengan kuota terbatas.
+TEKS],
+            ['Forum MICE Jawa Tengah', 'MICE', 'Hotel Aston, Purwokerto', 45, 46, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+Forum MICE Jawa Tengah menghimpun pelaku pariwisata, penyelenggara acara,
+pengelola hotel, dan pemangku kepentingan daerah untuk membahas pengembangan
+ekosistem Meetings, Incentives, Conferences, and Exhibitions di Jawa Tengah.
+
+Rangkaian kegiatan mencakup seminar, focus group discussion, business
+matching, dan pameran jasa penyelenggaraan acara daerah.
+TEKS],
+            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+Pekan Kuliner Nusantara mempersembahkan lebih dari 60 stand kuliner khas
+nusantara, dari makanan tradisional Banyumas hingga menu khas daerah lain.
+Ada juga lomba memasak, kelas memasak bersama chef, dan demo pembuatan
+makanan lokal yang bisa diikuti seluruh pengunjung.
+TEKS],
+            ['Pameran UMKM Banyumas', 'MICE', 'GOR Satria, Purwokerto', 90, 91, Event::STATUS_MENUNGGU_VERIFIKASI, <<<'TEKS'
+Pameran UMKM Banyumas menampilkan produk unggulan usaha mikro, kecil, dan
+menengah dari seluruh kabupaten. Pengunjung dapat berbelanja langsung,
+menjalin kemitraan usaha, dan mengikuti sesi pemberdayaan pelaku UMKM.
+TEKS],
+            ['Workshop Kriya Lokal', 'Festival Budaya', 'Balai Desa Kedungbanteng, Banyumas', 100, 100, Event::STATUS_DRAFT, <<<'TEKS'
+Workshop Kriya Lokal mengajak masyarakat belajar langsung dari perajin
+Banyumas: pembuatan batik biron, anyaman bambu, dan keramik. Kuota terbatas
+agar setiap peserta mendapat pendampingan intensif.
+TEKS],
+            ['Pasar Rakyat Lokal', 'Festival Budaya', 'Alun-alun, Purwokerto', -50, -49, Event::STATUS_DITUTUP, <<<'TEKS'
+Pasar Rakyat Lokal merupakan bazar ekonomi kreatif yang menampung petani,
+nelayan, dan pelaku usaha kecil untuk memasarkan produk langsung ke
+konsumen dengan harga wajar.
+TEKS],
+            ['Karnaval Desa Wisata', 'Festival Budaya', 'Desa Wisata, Banyumas', -120, -119, Event::STATUS_DIARSIPKAN, <<<'TEKS'
+Karnaval Desa Wisata menampilkan arak-arakan busana, organisasi seni desa,
+dan potensi wisata tiap desa di Banyumas sebagai bentuk apresiasi
+kearifan lokal.
+TEKS],
         ];
 
         $utama = null;
 
-        foreach ($daftar as [$nama, $kategori, $lokasi, $mulai, $selesai, $status]) {
+        foreach ($daftar as [$nama, $kategori, $lokasi, $mulai, $selesai, $status, $deskripsi]) {
             $event = Event::updateOrCreate(
                 ['eo_id' => $eo->eo_id, 'nama_event' => $nama],
                 [
-                    'deskripsi' => "Deskripsi {$nama}.",
+                    'deskripsi' => $deskripsi,
                     'lokasi' => $lokasi,
                     'kategori_event' => $kategori,
                     'tanggal_mulai' => today()->addDays($mulai),

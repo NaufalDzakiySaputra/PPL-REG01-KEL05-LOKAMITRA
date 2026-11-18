@@ -10,6 +10,7 @@ use App\Http\Controllers\Eo\EventController as EoEventController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
+use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
@@ -17,6 +18,12 @@ use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// Informasi event publik (F-06): daftar event terverifikasi tanpa login.
+Route::get('/events', [EventPublikController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventPublikController::class, 'show'])
+    ->name('events.show')
+    ->whereNumber('event');
 
 // Registrasi publik Lokamitra menggunakan validasi dan pembuatan profil custom.
 Route::middleware('guest')->group(function () {
