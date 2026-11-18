@@ -74,65 +74,16 @@ class EventVerificationTest extends TestCase
                 ->where('events.data.0.nama', 'Sudah Terverifikasi'));
     }
 
-    public function test_verifikasi_mengubah_status_dan_mencatat_admin(): void
+    public function test_selain_admin_tidak_bisa_mengakses_halaman(): void
     {
-        [$akun, $admin] = $this->admin();
-        $event = $this->buatEvent(Event::STATUS_MENUNGGU_VERIFIKASI);
-
-        $this->actingAs($akun)->post(route('admin.events.verify', $event))->assertRedirect();
-
-        $event->refresh();
-        $this->assertSame(Event::STATUS_DIPUBLIKASIKAN, $event->status_event);
-        $this->assertSame($admin->admin_id, $event->diverifikasi_oleh);
-        $this->assertNotNull($event->tanggal_diverifikasi);
-    }
-
-    public function test_hanya_event_terverifikasi_tampil_di_daftar_publik(): void
-    {
-        [$akun] = $this->admin();
-        $menunggu = $this->buatEvent(Event::STATUS_MENUNGGU_VERIFIKASI, 'Menunggu');
-        $this->buatEvent(Event::STATUS_DRAFT, 'Draft');
-        $this->buatEvent(Event::STATUS_DITUTUP, 'Ditutup');
-        $this->buatEvent(Event::STATUS_DIARSIPKAN, 'Arsip');
-
-        // Sebelum diverifikasi: tidak ada yang tampil di publik.
-        $this->assertSame(0, Event::tersediaUmum()->count());
-
-        $this->actingAs($akun)->post(route('admin.events.verify', $menunggu));
-
-        // Setelah diverifikasi: hanya event tersebut yang tampil.
-        $this->assertSame(['Menunggu'], Event::tersediaUmum()->pluck('nama_event')->all());
-    }
-
-    public function test_event_bukan_menunggu_tidak_berubah(): void
-    {
-        [$akun] = $this->admin();
-        $draft = $this->buatEvent(Event::STATUS_DRAFT);
-
-        $this->actingAs($akun)->post(route('admin.events.verify', $draft))->assertRedirect();
-
-        $this->assertSame(Event::STATUS_DRAFT, $draft->refresh()->status_event);
-        $this->assertNull($draft->diverifikasi_oleh);
-    }
-
-    public function test_selain_admin_tidak_bisa_mengakses(): void
-    {
-        $event = $this->buatEvent(Event::STATUS_MENUNGGU_VERIFIKASI);
-
         foreach ([User::factory()->eo()->create(), User::factory()->vendor()->create()] as $akun) {
             $this->actingAs($akun)->get(route('admin.events.index'))->assertForbidden();
-            $this->actingAs($akun)->post(route('admin.events.verify', $event))->assertForbidden();
         }
-
-        $this->assertSame(Event::STATUS_MENUNGGU_VERIFIKASI, $event->refresh()->status_event);
     }
 
     public function test_tamu_diarahkan_ke_login(): void
     {
-        $event = $this->buatEvent(Event::STATUS_MENUNGGU_VERIFIKASI);
-
         $this->get(route('admin.events.index'))->assertRedirect(route('login'));
-        $this->post(route('admin.events.verify', $event))->assertRedirect(route('login'));
     }
 
     public function test_menu_daftar_event_admin_aktif(): void

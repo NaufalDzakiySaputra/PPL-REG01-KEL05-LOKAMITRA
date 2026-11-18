@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Api\V1\Admin\PengajuanController as AdminPengajuanController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
@@ -131,6 +132,17 @@ Route::prefix('v1')->middleware('web')->group(function () {
                         ->whereNumber('pengajuan')
                         ->whereNumber('dokumen')
                         ->name('documents.download');
+                });
+
+            Route::prefix('admin/events')
+                ->name('api.v1.admin.events.')
+                ->group(function () {
+                    Route::get('/', [AdminEventController::class, 'index'])
+                        ->name('index');
+
+                    Route::post('/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
+                        ->whereNumber('event')
+                        ->name('verifikasi');
                 });
         });
     });
