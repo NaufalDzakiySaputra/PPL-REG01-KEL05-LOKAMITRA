@@ -77,6 +77,30 @@ class PengunjungDashboardService
         ];
     }
 
+    // Detail satu event untuk halaman publik (deskripsi, jadwal, pendaftaran).
+    public function detailEvent(Event $e): array
+    {
+        return [
+            'event' => [
+                'id' => $e->event_id,
+                'nama' => $e->nama_event,
+                'deskripsi' => $e->deskripsi,
+                'kategori' => $e->kategori_event,
+                'lokasi' => $e->lokasi,
+                'stakeholder' => $e->keanggotaan()
+                    ->where('status_keanggotaan', KeanggotaanEvent::STATUS_DITERIMA)
+                    ->count(),
+                'warna' => $e->event_id % self::JUMLAH_WARNA,
+                'tanggal_mulai' => FormatTanggal::panjang($e->tanggal_mulai),
+                'tanggal_selesai' => FormatTanggal::panjang($e->tanggal_selesai),
+                // Batas pendaftaran = tanggal selesai event (belum ada kolom khusus).
+                'daftar_sampai' => FormatTanggal::panjang($e->tanggal_selesai),
+                'sedang_berjalan' => $e->tanggal_mulai->lte(today()),
+                'informasi_regulasi' => $e->informasi_regulasi,
+            ],
+        ];
+    }
+
     private function pilihanKategori(): array
     {
         return Event::query()->tersediaUmum()
