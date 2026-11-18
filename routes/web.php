@@ -82,10 +82,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/events', [AdminEventController::class, 'index'])
             ->name('events.index');
 
-        Route::post('/events/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
-            ->whereNumber('event')
-            ->name('events.verify');
-
         Route::post('/events/{event}/arsipkan', [AdminEventController::class, 'arsipkan'])
             ->whereNumber('event')
             ->name('events.archive');

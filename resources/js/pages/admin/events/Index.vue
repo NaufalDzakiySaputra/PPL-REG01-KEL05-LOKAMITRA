@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Archive, CalendarCheck, ShieldCheck } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { ApiError, api } from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
 
 type EventItem = {
     id: number;
@@ -118,8 +121,29 @@ function ubahDialog(buka: boolean): void {
     dialogBuka.value = buka;
 }
 
-function konfirmasi(): void {
+async function konfirmasi(): Promise<void> {
     if (!dipilih.value) {
+        return;
+    }
+
+    if (aksi.value === 'verifikasi') {
+        memproses.value = true;
+        try {
+            const response = await api.post<ApiResponse<unknown>>(
+                `/api/v1/admin/events/${dipilih.value.id}/verifikasi`,
+            );
+            toast.success(response.message ?? 'Event berhasil diverifikasi.');
+            dialogBuka.value = false;
+            router.reload();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                toast.error(error.message);
+            } else {
+                toast.error('Gagal memverifikasi event.');
+            }
+        } finally {
+            memproses.value = false;
+        }
         return;
     }
 
