@@ -81,8 +81,16 @@ Route::prefix('v1')->middleware('web')->group(function () {
 
         // Modul Manajemen Event untuk Event Organizer.
         Route::middleware('role:eo')->prefix('eo')->name('api.v1.eo.')->group(function () {
+            Route::get('/events', [EoEventController::class, 'index'])
+                ->name('events.index');
             Route::post('/events', [EoEventController::class, 'store'])
                 ->name('events.store');
+            Route::get('/events/{event}', [EoEventController::class, 'show'])
+                ->whereNumber('event')
+                ->name('events.show');
+            Route::put('/events/{event}', [EoEventController::class, 'update'])
+                ->whereNumber('event')
+                ->name('events.update');
         });
 
         // Verifikasi pendaftaran hanya untuk Admin. File dokumen tetap privat.

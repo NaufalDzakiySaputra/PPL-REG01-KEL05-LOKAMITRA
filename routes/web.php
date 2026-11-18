@@ -13,8 +13,8 @@ use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
-use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
+use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Middleware\PreventBackHistory;
@@ -101,7 +101,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
         Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
         Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
-        Route::put('/events/{event}', [EoEventController::class, 'update'])->whereNumber('event')->name('events.update');
         Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
 
         // Direktori stakeholder
