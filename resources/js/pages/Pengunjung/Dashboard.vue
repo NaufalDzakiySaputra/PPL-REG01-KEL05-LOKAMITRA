@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ArrowRight, MapPin, Search } from '@lucide/vue';
-import { ref } from 'vue';
+import { Head, Link, router } from "@inertiajs/vue3";
+import { ArrowRight, MapPin, Search } from "@lucide/vue";
+import { ref } from "vue";
 
-// Beranda Pengunjung (Figma "Tampilan Pengunjung"): katalog event terverifikasi.
+// Beranda Pengunjung: tampilan sama dengan landing page katalog event (F-06).
 type KartuEvent = {
     id: number;
     nama: string;
@@ -29,12 +29,12 @@ const props = defineProps<{
 }>();
 
 const palet = [
-    '#4CC95F',
-    '#F5333A',
-    '#F58A1F',
-    '#3DC1E8',
-    '#3CC9B5',
-    '#F72554',
+    "#4CC95F",
+    "#F5333A",
+    "#F58A1F",
+    "#3DC1E8",
+    "#3CC9B5",
+    "#F72554",
 ];
 
 const q = ref(props.filter.q);
@@ -43,10 +43,10 @@ const q = ref(props.filter.q);
 function terapkan(perubahan: Partial<typeof props.filter> = {}) {
     const params = { ...props.filter, q: q.value, ...perubahan };
     const bersih = Object.fromEntries(
-        Object.entries(params).filter(([, v]) => v !== '' && v !== 'terdekat'),
+        Object.entries(params).filter(([, v]) => v !== "" && v !== "terdekat"),
     );
 
-    router.get('/pengunjung/dashboard', bersih, {
+    router.get("/pengunjung/dashboard", bersih, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -56,7 +56,7 @@ function terapkan(perubahan: Partial<typeof props.filter> = {}) {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: 'Beranda Pengunjung', href: '/pengunjung/dashboard' },
+            { title: "Beranda Pengunjung", href: "/pengunjung/dashboard" },
         ],
     },
 });
@@ -66,51 +66,126 @@ defineOptions({
     <Head title="Temukan Event" />
 
     <!-- hero -->
-    <section class="bg-[#216B60] px-6 py-10 text-white md:px-10">
-        <div class="mx-auto max-w-5xl">
+    <section
+        class="relative overflow-hidden bg-[#0D443D] px-6 py-16 text-white"
+    >
+        <!-- dekorasi: glow blobs -->
+        <div
+            class="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#216B60]/50 blur-3xl"
+        ></div>
+        <div
+            class="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-[#F5B52E]/15 blur-3xl"
+        ></div>
+        <!-- dekorasi: grid dots -->
+        <div
+            class="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style="
+                background-image: radial-gradient(white 1px, transparent 1px);
+                background-size: 24px 24px;
+            "
+        ></div>
+
+        <div class="relative mx-auto max-w-6xl">
+            <span
+                class="inline-block animate-pulse rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#F5B52E] uppercase"
+            >
+                ✦ Event Lokamitra
+            </span>
             <h1
-                class="max-w-xl text-3xl leading-tight font-extrabold md:text-4xl"
+                class="mt-4 max-w-xl text-3xl leading-tight font-extrabold md:text-4xl"
                 data-test="pengunjung-title"
             >
-                Temukan event yang sedang dan akan berlangsung
+                Temukan event yang sedang dan
+                <span class="text-[#F5B52E]">akan berlangsung</span>
             </h1>
-            <p class="mt-3 max-w-xl text-sm text-white/90">
+            <p class="mt-3 max-w-xl text-sm text-white/80">
                 Semua event di sini sudah diverifikasi admin. Tanpa perlu akun,
                 Anda bisa melihat jadwal, lokasi, dan stakeholder yang terlibat.
             </p>
 
-            <form class="mt-6 flex max-w-xl gap-3" @submit.prevent="terapkan()">
+            <form class="mt-8 flex max-w-xl gap-3" @submit.prevent="terapkan()">
                 <label class="relative flex-1">
                     <Search
-                        class="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-neutral-400"
+                        class="absolute top-1/2 left-4 size-4 -translate-y-1/2 text-neutral-400"
                     />
                     <input
                         v-model="q"
                         type="search"
                         placeholder="Cari nama event"
-                        class="h-11 w-full rounded-lg bg-white pr-3 pl-10 text-sm text-neutral-900 outline-none placeholder:text-neutral-400"
+                        class="h-12 w-full rounded-full bg-white pr-4 pl-11 text-sm text-neutral-900 shadow-lg outline-none placeholder:text-neutral-400 focus:ring-2 focus:ring-[#F5B52E]"
                     />
                 </label>
                 <button
                     type="submit"
-                    class="rounded-lg bg-[#F5B52E] px-6 text-sm font-bold text-neutral-900 hover:bg-[#d09820]"
+                    class="rounded-full bg-[#F5B52E] px-7 text-sm font-bold text-neutral-900 shadow-lg transition-all hover:-translate-y-0.5 hover:bg-[#e5a81e] active:translate-y-0"
                 >
                     Cari
                 </button>
             </form>
+
+            <!-- statistik singkat -->
+            <div class="mt-10 flex flex-wrap gap-8">
+                <div>
+                    <p class="text-2xl font-extrabold text-[#F5B52E]">
+                        {{ events.total }}
+                    </p>
+                    <p class="text-xs text-white/70">Event terverifikasi</p>
+                </div>
+                <div class="border-l border-white/20 pl-8">
+                    <p class="text-2xl font-extrabold text-[#F5B52E]">
+                        {{ pilihan.kategori.length }}
+                    </p>
+                    <p class="text-xs text-white/70">Kategori acara</p>
+                </div>
+                <div class="border-l border-white/20 pl-8">
+                    <p class="text-2xl font-extrabold text-[#F5B52E]">
+                        {{ pilihan.kota.length }}
+                    </p>
+                    <p class="text-xs text-white/70">Kota terjangkau</p>
+                </div>
+            </div>
         </div>
     </section>
 
-    <section class="mx-auto max-w-5xl px-6 py-8 md:px-10">
+    <!-- strip berjalan -->
+    <div
+        class="overflow-hidden border-b border-[#E5E2DF] bg-white py-3"
+        aria-hidden="true"
+    >
+        <div class="marquee flex gap-8 whitespace-nowrap">
+            <span
+                v-for="n in 2"
+                :key="n"
+                class="flex gap-8 text-xs font-semibold tracking-wide text-[#0D443D]/60 uppercase"
+            >
+                <template v-for="i in 6" :key="i">
+                    <span class="flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-[#F5B52E]"></span>
+                        Event terverifikasi admin
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-[#216B60]"></span>
+                        Gratis untuk pengunjung
+                    </span>
+                    <span class="flex items-center gap-2">
+                        <span class="size-1.5 rounded-full bg-[#F5B52E]"></span>
+                        {{ pilihan.kota.length }} kota terjangkau
+                    </span>
+                </template>
+            </span>
+        </div>
+    </div>
+
+    <section class="mx-auto max-w-6xl px-6 py-10">
         <!-- chip kategori -->
-        <div class="flex flex-wrap gap-2">
+        <div class="flex flex-wrap items-center gap-2">
             <button
                 type="button"
                 :class="[
-                    'rounded-full border px-4 py-1.5 text-sm font-semibold',
+                    'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors',
                     filter.kategori === ''
                         ? 'border-[#216B60] bg-[#216B60] text-white'
-                        : 'border-neutral-300 bg-white text-neutral-800',
+                        : 'border-[#E5E2DF] bg-white text-neutral-700 hover:border-[#216B60]',
                 ]"
                 @click="terapkan({ kategori: '' })"
             >
@@ -121,10 +196,10 @@ defineOptions({
                 :key="k"
                 type="button"
                 :class="[
-                    'rounded-full border px-4 py-1.5 text-sm font-semibold',
+                    'rounded-full border px-4 py-1.5 text-sm font-semibold transition-colors',
                     filter.kategori === k
                         ? 'border-[#216B60] bg-[#216B60] text-white'
-                        : 'border-neutral-300 bg-white text-neutral-800',
+                        : 'border-[#E5E2DF] bg-white text-neutral-700 hover:border-[#216B60]',
                 ]"
                 @click="terapkan({ kategori: k })"
             >
@@ -132,15 +207,17 @@ defineOptions({
             </button>
         </div>
 
-        <div class="mt-5 flex flex-wrap items-center justify-between gap-3">
-            <p class="text-sm">
+        <!-- ringkasan & filter tambahan -->
+        <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-neutral-600">
                 Menampilkan
-                <strong>{{ events.total }} event</strong> terverifikasi
+                <strong class="text-neutral-900">{{ events.total }}</strong>
+                event terverifikasi
             </p>
             <div class="flex gap-2">
                 <select
                     :value="filter.kota"
-                    class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-800"
+                    class="rounded-full border border-[#E5E2DF] bg-white px-4 py-1.5 text-xs text-neutral-800 outline-none"
                     @change="
                         terapkan({
                             kota: ($event.target as HTMLSelectElement).value,
@@ -158,7 +235,7 @@ defineOptions({
                 </select>
                 <select
                     :value="filter.urut"
-                    class="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-800"
+                    class="rounded-full border border-[#E5E2DF] bg-white px-4 py-1.5 text-xs text-neutral-800 outline-none"
                     @change="
                         terapkan({
                             urut: ($event.target as HTMLSelectElement).value,
@@ -171,64 +248,92 @@ defineOptions({
             </div>
         </div>
 
+        <hr class="mt-6 border-[#E5E2DF]" />
+
         <!-- kosong -->
-        <p
+        <div
             v-if="events.data.length === 0"
-            class="mt-12 text-center text-sm text-neutral-500"
+            class="py-20 text-center"
+            data-test="event-kosong"
         >
-            Belum ada event yang cocok dengan pencarian Anda.
-        </p>
+            <div
+                class="mx-auto flex size-16 items-center justify-center rounded-full bg-[#0D443D]/5"
+            >
+                <Search class="size-7 text-[#216B60]" />
+            </div>
+            <p class="mt-4 font-semibold text-neutral-700">
+                Belum ada event yang cocok
+            </p>
+            <p class="mt-1 text-sm text-neutral-500">
+                Coba ubah kata kunci atau filter pencarian Anda.
+            </p>
+        </div>
 
         <!-- kartu event -->
-        <ul v-else class="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <ul v-else class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <li
                 v-for="e in events.data"
                 :key="e.id"
-                class="overflow-hidden rounded-2xl border border-neutral-300 bg-white text-neutral-900 shadow-sm"
+                class="group overflow-hidden rounded-2xl border border-[#E5E2DF] bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
                 <div
-                    class="relative h-28"
+                    class="relative h-32 overflow-hidden"
                     :style="{ backgroundColor: palet[e.warna] }"
                 >
+                    <!-- dekorasi lingkaran transparan -->
                     <div
-                        class="absolute right-3 -bottom-3 flex flex-col items-center rounded-lg bg-white px-2 py-0.5 leading-tight shadow"
+                        class="absolute -top-6 -right-6 h-24 w-24 rounded-full bg-white/15 transition-transform duration-500 group-hover:scale-125"
+                    ></div>
+                    <div
+                        class="absolute -bottom-8 left-8 h-16 w-16 rounded-full bg-white/10"
+                    ></div>
+                    <div
+                        class="absolute right-4 -bottom-4 flex w-12 flex-col items-center rounded-xl bg-white py-1 leading-tight shadow"
                     >
                         <span class="text-sm font-extrabold">{{
                             e.tanggal.hari
                         }}</span>
-                        <span class="text-[10px] font-bold">{{
+                        <span class="text-[10px] font-bold text-neutral-500">{{
                             e.tanggal.bulan
                         }}</span>
                     </div>
                 </div>
-                <div class="p-4">
-                    <p class="text-[11px] font-bold text-amber-900">
+                <div class="p-5 pt-6">
+                    <span
+                        class="inline-block rounded-full bg-[#216B60]/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[#216B60] uppercase"
+                    >
                         {{ e.kategori }}
-                    </p>
-                    <h3 class="mt-0.5 text-base font-extrabold">
+                    </span>
+                    <h3
+                        class="mt-1 text-base font-extrabold text-neutral-900 transition-colors group-hover:text-[#216B60]"
+                    >
                         {{ e.nama }}
                     </h3>
                     <p
-                        class="mt-1.5 flex items-center gap-1 text-xs text-neutral-500"
+                        class="mt-2 flex items-center gap-1 text-xs text-neutral-500"
                     >
                         <MapPin class="size-3.5" /> {{ e.lokasi }}
                     </p>
                     <p class="mt-1 text-[11px] text-neutral-400">
-                        {{ e.stakeholder }} Stakeholder terlibat
+                        {{ e.stakeholder }} stakeholder terlibat
                     </p>
                     <Link
                         v-if="e.href"
                         :href="e.href"
-                        class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#155F55]"
+                        class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-[#155F55] transition-colors hover:text-[#0D443D]"
                     >
-                        Lihat detail <ArrowRight class="size-3.5" />
+                        Lihat detail event
+                        <ArrowRight
+                            class="size-3.5 transition-transform group-hover:translate-x-0.5"
+                        />
                     </Link>
                     <span
                         v-else
-                        class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-neutral-400"
+                        class="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-neutral-400"
                         title="Segera tersedia"
                     >
-                        Lihat detail <ArrowRight class="size-3.5" />
+                        Lihat detail event
+                        <ArrowRight class="size-3.5" />
                     </span>
                 </div>
             </li>
@@ -237,12 +342,12 @@ defineOptions({
         <!-- halaman -->
         <nav
             v-if="events.last_page > 1"
-            class="mt-8 flex items-center justify-center gap-3 text-sm"
+            class="mt-10 flex items-center justify-center gap-4 text-sm"
         >
             <Link
                 v-if="events.prev_page_url"
                 :href="events.prev_page_url"
-                class="rounded-md border border-neutral-300 bg-white px-4 py-1.5 text-neutral-800"
+                class="rounded-full border border-[#E5E2DF] bg-white px-5 py-1.5 font-semibold text-neutral-800 transition-colors hover:border-[#216B60]"
                 preserve-scroll
             >
                 &larr; Sebelumnya
@@ -253,7 +358,7 @@ defineOptions({
             <Link
                 v-if="events.next_page_url"
                 :href="events.next_page_url"
-                class="rounded-md border border-neutral-300 bg-white px-4 py-1.5 text-neutral-800"
+                class="rounded-full border border-[#E5E2DF] bg-white px-5 py-1.5 font-semibold text-neutral-800 transition-colors hover:border-[#216B60]"
                 preserve-scroll
             >
                 Berikutnya &rarr;
@@ -261,3 +366,18 @@ defineOptions({
         </nav>
     </section>
 </template>
+
+<style scoped>
+.marquee {
+    animation: marquee 30s linear infinite;
+}
+
+@keyframes marquee {
+    from {
+        transform: translateX(0);
+    }
+    to {
+        transform: translateX(-50%);
+    }
+}
+</style>
