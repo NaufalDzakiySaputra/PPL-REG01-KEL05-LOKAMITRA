@@ -21,13 +21,14 @@ class PlatformLoginLogoutTest extends TestCase
     {
         $this->seed(AdminSeeder::class);
 
-        $response = $this->post(route('login.store'), [
+        $response = $this->postJson('/api/v1/login', [
             'email' => 'admin@lokamitra.test',
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('admin.dashboard'));
+        $response->assertOk()
+            ->assertJsonPath('redirect', route('admin.dashboard'));
     }
 
     public function test_admin_dashboard_can_be_rendered_for_admin()
@@ -42,10 +43,10 @@ class PlatformLoginLogoutTest extends TestCase
     {
         $admin = User::factory()->admin()->create();
 
-        $this->from(route('login'))->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $admin->email,
             'password' => 'salah-total',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
         $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
@@ -53,10 +54,10 @@ class PlatformLoginLogoutTest extends TestCase
 
     public function test_unknown_email_cannot_log_in()
     {
-        $this->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => 'tidak-ada@lokamitra.test',
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }
@@ -68,7 +69,7 @@ class PlatformLoginLogoutTest extends TestCase
         $admin = User::factory()->admin()->create();
         $this->actingAs($admin)->get(route('admin.dashboard'))->assertOk();
 
-        $this->post(route('logout'))->assertRedirect(route('login'));
+        $this->postJson('/api/v1/logout')->assertOk();
 
         $this->assertGuest();
         $this->get(route('admin.dashboard'))->assertRedirect(route('login'));
@@ -94,13 +95,14 @@ class PlatformLoginLogoutTest extends TestCase
             'status_verifikasi' => Eo::STATUS_DISETUJUI,
         ]);
 
-        $response = $this->post(route('login.store'), [
+        $response = $this->postJson('/api/v1/login', [
             'email' => $akun->email,
             'password' => 'password',
         ]);
 
         $this->assertAuthenticated();
-        $response->assertRedirect(route('eo.dashboard'));
+        $response->assertOk()
+            ->assertJsonPath('redirect', route('eo.dashboard'));
     }
 
     public function test_eo_dashboard_can_be_rendered_for_eo()
@@ -115,10 +117,10 @@ class PlatformLoginLogoutTest extends TestCase
     {
         $akun = User::factory()->eo()->menunggu()->create();
 
-        $this->from(route('login'))->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $akun->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }
@@ -127,10 +129,10 @@ class PlatformLoginLogoutTest extends TestCase
     {
         $akun = User::factory()->eo()->create(['status_akun' => User::STATUS_DITOLAK]);
 
-        $this->post(route('login.store'), [
+        $this->postJson('/api/v1/login', [
             'email' => $akun->email,
             'password' => 'password',
-        ])->assertSessionHasErrors('email');
+        ])->assertUnprocessable()->assertJsonValidationErrors('email');
 
         $this->assertGuest();
     }
@@ -141,7 +143,7 @@ class PlatformLoginLogoutTest extends TestCase
     {
         $akun = User::factory()->eo()->create();
 
-        $this->actingAs($akun)->post(route('logout'))->assertRedirect(route('login'));
+        $this->actingAs($akun)->postJson('/api/v1/logout')->assertOk();
 
         $this->assertGuest();
         $this->get(route('eo.dashboard'))->assertRedirect(route('login'));

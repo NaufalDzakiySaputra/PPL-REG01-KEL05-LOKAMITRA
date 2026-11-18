@@ -28,6 +28,7 @@ class UserResource extends JsonResource
                 ucfirst((string) $this->role)
             ),
             'status_akun' => $this->status_akun,
+            'status_verifikasi' => $this->statusVerifikasi(),
             'email_verified_at' => $this->formatTanggal($this->email_verified_at),
             'created_at' => $this->formatTanggal($this->created_at),
             'updated_at' => $this->formatTanggal($this->updated_at),
@@ -41,5 +42,16 @@ class UserResource extends JsonResource
         }
 
         return Carbon::parse($tanggal)->toIso8601String();
+    }
+
+    // Padanan status akun pada kontrak API: pending, verified, rejected.
+    private function statusVerifikasi(): string
+    {
+        return match ($this->status_akun) {
+            User::STATUS_AKTIF => 'verified',
+            User::STATUS_MENUNGGU => 'pending',
+            User::STATUS_DITOLAK => 'rejected',
+            default => 'pending',
+        };
     }
 }

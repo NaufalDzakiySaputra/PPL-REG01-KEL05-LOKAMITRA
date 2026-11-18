@@ -26,6 +26,19 @@ class RegisterRequest extends FormRequest
                 'email' => Str::lower(trim($this->input('email'))),
             ]);
         }
+
+        // Terima alias peran dari kontrak API, lalu simpan nilai yang dipakai database.
+        $aliasPeran = [
+            'vendor_umkm' => User::ROLE_VENDOR,
+            'komunitas_lokal' => User::ROLE_KOMUNITAS,
+            'pemerintah_daerah' => User::ROLE_PEMDA,
+        ];
+
+        $role = $this->input('role');
+
+        if (is_string($role) && isset($aliasPeran[$role])) {
+            $this->merge(['role' => $aliasPeran[$role]]);
+        }
     }
 
     public function rules(): array

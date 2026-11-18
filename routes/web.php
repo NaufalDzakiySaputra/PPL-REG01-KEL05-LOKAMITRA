@@ -2,6 +2,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\PengajuanController;
 use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
 use App\Http\Controllers\Auth\RegisterController;
@@ -13,17 +14,52 @@ use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardCont
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
+use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
+use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController as FortifyAuthenticatedSessionController;
+use Laravel\Fortify\Http\Controllers\ConfirmablePasswordController;
+use Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController;
+use Laravel\Fortify\Http\Controllers\NewPasswordController;
+use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
 Route::inertia('/', 'Welcome')->name('home');
+
+// Informasi event publik (F-06): daftar event terverifikasi tanpa login.
+Route::get('/events', [EventPublikController::class, 'index'])->name('events.index');
+Route::get('/events/{event}', [EventPublikController::class, 'show'])
+    ->name('events.show')
+    ->whereNumber('event');
+
+// Halaman autentikasi Fortify. Transaksi login/logout sudah pindah ke /api/v1.
+Route::middleware('guest:web')->group(function () {
+    Route::get('/login', [FortifyAuthenticatedSessionController::class, 'create'])
+        ->name('login');
+
+    Route::get('/forgot-password', [PasswordResetLinkController::class, 'create'])
+        ->name('password.request');
+
+    Route::get('/reset-password/{token}', [NewPasswordController::class, 'create'])
+        ->name('password.reset');
+});
+
+// Route bawaan Fortify yang belum termasuk lingkup migrasi.
+Route::middleware('auth:web')->group(function () {
+    Route::get('/user/confirm-password', [ConfirmablePasswordController::class, 'show'])
+        ->name('password.confirm');
+
+    Route::post('/user/confirm-password', [ConfirmablePasswordController::class, 'store'])
+        ->name('password.confirm.store');
+
+    Route::get('/user/confirmed-password-status', [ConfirmedPasswordStatusController::class, 'show'])
+        ->name('password.confirmation');
+});
 
 // Registrasi publik Lokamitra menggunakan validasi dan pembuatan profil custom.
 Route::middleware('guest')->group(function () {
     Route::get('/register', [RegisterController::class, 'create'])->name('register');
-    Route::post('/register', [RegisterController::class, 'store'])->name('register.store');
 });
 
 // Semua dashboard wajib login dan tidak disimpan dalam cache browser.
@@ -43,52 +79,36 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
             ->whereNumber('pengajuan')
             ->name('pengajuan.show');
 
-        Route::post('/pengajuan/{pengajuan}/setujui', [PengajuanController::class, 'approve'])
-            ->whereNumber('pengajuan')
-            ->name('pengajuan.approve');
+        Route::get('/events', [AdminEventController::class, 'index'])
+            ->name('events.index');
 
-        Route::post('/pengajuan/{pengajuan}/tolak', [PengajuanController::class, 'reject'])
-            ->whereNumber('pengajuan')
-            ->name('pengajuan.reject');
+        Route::post('/events/{event}/arsipkan', [AdminEventController::class, 'arsipkan'])
+            ->whereNumber('event')
+            ->name('events.archive');
 
-        Route::post('/pengajuan/{pengajuan}/dokumen/{dokumen}/periksa', [PengajuanController::class, 'reviewDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.review');
-
-        Route::get('/pengajuan/{pengajuan}/dokumen/{dokumen}/lihat', [PengajuanController::class, 'previewDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.preview');
-
-        Route::get('/pengajuan/{pengajuan}/dokumen/{dokumen}/unduh', [PengajuanController::class, 'downloadDocument'])
-            ->whereNumber('pengajuan')
-            ->whereNumber('dokumen')
-            ->name('pengajuan.documents.download');
     });
 
-            Route::get('/eo/dashboard', EoDashboardController::class)
+    Route::get('/eo/dashboard', EoDashboardController::class)
         ->middleware('role:eo')
         ->name('eo.dashboard');
 
-        Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
-            Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
-            Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
-            Route::post('/events', [EoEventController::class, 'store'])->name('events.store');
-            Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
-            Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
-            Route::put('/events/{event}', [EoEventController::class, 'update'])->whereNumber('event')->name('events.update');
+    Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
+        Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
+        Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
+        Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
+        Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
+        Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
 
-            // Direktori stakeholder
-            Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
-                ->name('stakeholders.index');
+        // Direktori stakeholder
+        Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
+            ->name('stakeholders.index');
 
-            // Detail stakeholder
-            Route::get('/stakeholders/{type}/{user}', [EoStakeholderController::class, 'show'])
-                ->whereIn('type', ['pemda', 'vendor', 'komunitas', 'akademisi', 'media'])
-                ->whereNumber('user')
-                ->name('stakeholders.show');
-        });
+        // Detail stakeholder
+        Route::get('/stakeholders/{type}/{user}', [EoStakeholderController::class, 'show'])
+            ->whereIn('type', ['pemda', 'vendor', 'komunitas', 'akademisi', 'media'])
+            ->whereNumber('user')
+            ->name('stakeholders.show');
+    });
 
     Route::get('/vendor/dashboard', VendorDashboardController::class)
         ->middleware('role:vendor')
@@ -118,9 +138,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::middleware('role:eo,vendor,pemda,komunitas,akademisi,media')->group(function () {
         Route::get('/profil-peran', [RoleProfileController::class, 'edit'])
             ->name('role-profile.edit');
-
-        Route::put('/profil-peran', [RoleProfileController::class, 'update'])
-            ->name('role-profile.update');
     });
 });
 

@@ -66,7 +66,7 @@ defineOptions({
     <Head title="Temukan Event" />
 
     <!-- hero -->
-    <section class="bg-[#267A1E] px-6 py-10 text-white md:px-10">
+    <section class="bg-[#216B60] px-6 py-10 text-white md:px-10">
         <div class="mx-auto max-w-5xl">
             <h1
                 class="max-w-xl text-3xl leading-tight font-extrabold md:text-4xl"
@@ -93,7 +93,7 @@ defineOptions({
                 </label>
                 <button
                     type="submit"
-                    class="rounded-lg bg-[#E3A62B] px-6 text-sm font-bold text-neutral-900 hover:bg-[#d09820]"
+                    class="rounded-lg bg-[#F5B52E] px-6 text-sm font-bold text-neutral-900 hover:bg-[#d09820]"
                 >
                     Cari
                 </button>
@@ -109,7 +109,7 @@ defineOptions({
                 :class="[
                     'rounded-full border px-4 py-1.5 text-sm font-semibold',
                     filter.kategori === ''
-                        ? 'border-[#267A1E] bg-[#267A1E] text-white'
+                        ? 'border-[#216B60] bg-[#216B60] text-white'
                         : 'border-neutral-300 bg-white text-neutral-800',
                 ]"
                 @click="terapkan({ kategori: '' })"
@@ -123,7 +123,7 @@ defineOptions({
                 :class="[
                     'rounded-full border px-4 py-1.5 text-sm font-semibold',
                     filter.kategori === k
-                        ? 'border-[#267A1E] bg-[#267A1E] text-white'
+                        ? 'border-[#216B60] bg-[#216B60] text-white'
                         : 'border-neutral-300 bg-white text-neutral-800',
                 ]"
                 @click="terapkan({ kategori: k })"
@@ -219,7 +219,7 @@ defineOptions({
                     <Link
                         v-if="e.href"
                         :href="e.href"
-                        class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#267A1E]"
+                        class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#155F55]"
                     >
                         Lihat detail <ArrowRight class="size-3.5" />
                     </Link>

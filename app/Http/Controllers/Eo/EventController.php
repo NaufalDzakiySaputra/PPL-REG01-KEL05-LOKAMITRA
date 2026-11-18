@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Eo;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Eo\StoreEventRequest;
-use App\Http\Requests\Eo\UpdateEventRequest;
 use App\Models\Event;
 use App\Support\FormatTanggal;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,21 +41,6 @@ class EventController extends Controller
         ]);
     }
 
-    public function store(StoreEventRequest $request): RedirectResponse
-    {
-        $event = new Event($request->validated());
-        $event->eo_id = $request->user()->eo->eo_id;
-        $event->status_event = Event::STATUS_DRAFT;
-        $event->save();
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil dibuat sebagai draft.",
-        ]);
-
-        return to_route('eo.events.index');
-    }
-
     private function periode(Event $event): string
     {
         $mulai = FormatTanggal::ringkas($event->tanggal_mulai);
@@ -89,19 +71,6 @@ class EventController extends Controller
         ]);
     }
 
-    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
-    {
-        // validated() hanya berisi field form, jadi eo_id dan status tidak bisa diubah.
-        $event->update($request->validated());
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil diperbarui.",
-        ]);
-
-        return to_route('eo.events.show', $event);
-    }
-
     private function pastikanPemilik(Request $request, Event $event): void
     {
         abort_unless(
@@ -125,6 +94,11 @@ class EventController extends Controller
             'status' => $event->status_event,
             'dapat_diubah' => $event->dapatDiubah(),
             'diperbarui' => FormatTanggal::denganJam($event->updated_at),
+            'dapat_ditutup' => $event->dapatDitutup(),
+            'siap_diarsipkan' => $event->status_event === Event::STATUS_DITUTUP,
+            'tanggal_ditutup' => $event->tanggal_ditutup
+                ? FormatTanggal::denganJam($event->tanggal_ditutup)
+                : null,
         ];
     }
 }

@@ -88,6 +88,7 @@ function formatStatus(status: string) {
                 </Link>
             </div>
 
+
             <div v-else class="overflow-x-auto">
                 <table class="w-full min-w-[650px] text-left text-sm">
                     <thead>
@@ -119,17 +120,28 @@ function formatStatus(status: string) {
                                 </span>
                             </td>
                             <td class="px-3 py-4 text-right">
-                                <Link
-                                    :href="`/eo/events/${event.id}`"
-                                    class="font-semibold text-[#17564C] hover:underline"
-                                >
-                                    Lihat Detail
-                                </Link>
+                                <div class="flex justify-end gap-3">
+                                    <Link
+                                        :href="`/eo/events/${event.id}`"
+                                        class="font-semibold text-[#17564C] hover:underline"
+                                    >
+                                        Detail
+                                    </Link>
+
+                                    <Link
+                                        v-if="!['ditutup', 'diarsipkan'].includes(event.status)"
+                                        :href="`/eo/events/${event.id}/ubah`"
+                                        class="font-semibold text-[#17564C] hover:underline"
+                                    >
+                                        Ubah
+                                    </Link>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
             </div>
+
 
             <div
                 v-if="events.last_page > 1"
