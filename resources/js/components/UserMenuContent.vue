@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
 import { LogOut, Settings } from '@lucide/vue';
+import { toast } from 'vue-sonner';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -8,7 +9,7 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
-import { logout } from '@/routes';
+import { ApiError, api } from '@/lib/api';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 
@@ -16,8 +17,19 @@ type Props = {
     user: User;
 };
 
-const handleLogout = () => {
+const handleLogout = async () => {
+    try {
+        await api.post('/api/v1/logout');
+    } catch (error) {
+        if (error instanceof ApiError && error.status !== 401) {
+            toast.error(error.message);
+
+            return;
+        }
+    }
+
     router.flushAll();
+    window.location.assign('/login');
 };
 
 defineProps<Props>();
@@ -40,15 +52,14 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
-        <Link
-            class="block w-full cursor-pointer"
-            :href="logout()"
+        <button
+            type="button"
+            class="block w-full cursor-pointer text-left"
             @click="handleLogout"
-            as="button"
             data-test="logout-button"
         >
-            <LogOut class="mr-2 h-4 w-4" />
+            <LogOut class="mr-2 inline h-4 w-4" />
             Log out
-        </Link>
+        </button>
     </DropdownMenuItem>
 </template>

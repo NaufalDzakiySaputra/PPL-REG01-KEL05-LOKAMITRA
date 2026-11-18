@@ -58,10 +58,12 @@ class DemoEventSeeder extends Seeder
     }
 
     // Beberapa event dengan status berbeda; mengembalikan event utama milik EO contoh.
+    // Event utama sengaja dibuat sedang berlangsung agar Dashboard EO (yang memilih
+    // event aktif) menampilkan data demo lengkap: stakeholder, tugas, dan agenda.
     private function event(Eo $eo): Event
     {
         $daftar = [
-            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+            ['Festival Budaya Banyumas', 'Festival Budaya', 'Alun-alun, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
 Festival Budaya Banyumas adalah perayaan tahunan yang menampilkan kekayaan
 budaya daerah Banyumas dalam satu panggung besar. Pengunjung dapat menikmati
 pertunjukan slawat kreasi, ebeg, angguk, akulturasi budaya, serta pameran
@@ -88,7 +90,7 @@ ekosistem Meetings, Incentives, Conferences, and Exhibitions di Jawa Tengah.
 Rangkaian kegiatan mencakup seminar, focus group discussion, business
 matching, dan pameran jasa penyelenggaraan acara daerah.
 TEKS],
-            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', -1, 2, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
+            ['Pekan Kuliner Nusantara', 'Festival Budaya', 'Taman Andhang Pangrenan, Banyumas', 36, 37, Event::STATUS_DIPUBLIKASIKAN, <<<'TEKS'
 Pekan Kuliner Nusantara mempersembahkan lebih dari 60 stand kuliner khas
 nusantara, dari makanan tradisional Banyumas hingga menu khas daerah lain.
 Ada juga lomba memasak, kelas memasak bersama chef, dan demo pembuatan

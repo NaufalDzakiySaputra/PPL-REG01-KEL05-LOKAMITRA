@@ -112,4 +112,22 @@ class Event extends Model
     {
         return $this->hasMany(Pengumuman::class, 'event_id', 'event_id');
     }
+
+    public function dapatDiubah(): bool
+    {
+        return ! in_array($this->status_event, [
+            self::STATUS_DITUTUP,
+            self::STATUS_DIARSIPKAN,
+        ], true);
+    }
+
+    public function dapatDitutup(): bool
+    {
+        return $this->status_event === self::STATUS_DIPUBLIKASIKAN;
+    }
+
+    public function scopeSiapDiarsipkan(Builder $query): Builder
+    {
+        return $query->where('status_event', self::STATUS_DITUTUP);
+    }
 }

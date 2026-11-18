@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 import { Check } from '@lucide/vue';
+import { reactive, ref } from 'vue';
 import InputError from '@/components/InputError.vue';
 import LokamitraLogo from '@/components/LokamitraLogo.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -15,9 +17,21 @@ import {
     authLabelClass,
     authLinkClass,
 } from '@/lib/authStyles';
+import { ApiError, api } from '@/lib/api';
 import { register } from '@/routes';
-import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+
+type LoginResponse = {
+    message: string;
+    data: {
+        id: number;
+        name: string;
+        email: string;
+        role: string;
+        status_verifikasi: string;
+    };
+    redirect: string;
+};
 
 defineOptions({
     layout: {
@@ -31,6 +45,41 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const form = reactive({
+    email: '',
+    password: '',
+    remember: false,
+});
+
+const errors = ref<Record<string, string>>({});
+const pesanError = ref('');
+const processing = ref(false);
+
+async function masuk(): Promise<void> {
+    processing.value = true;
+    errors.value = {};
+    pesanError.value = '';
+
+    try {
+        const response = await api.post<LoginResponse>('/api/v1/login', {
+            ...form,
+        });
+
+        window.location.assign(response.redirect);
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errors.value = error.fieldErrors;
+            pesanError.value =
+                Object.keys(error.fieldErrors).length > 0 ? '' : error.message;
+        } else {
+            pesanError.value =
+                'Tidak dapat terhubung ke server. Silakan coba lagi.';
+        }
+    } finally {
+        processing.value = false;
+    }
+}
 
 const features = [
     {
@@ -134,12 +183,14 @@ const features = [
                         {{ status }}
                     </div>
 
-                    <Form
-                        v-bind="store.form()"
-                        :reset-on-success="['password']"
-                        v-slot="{ errors, processing }"
-                        class="flex flex-col gap-5"
+                    <div
+                        v-if="pesanError"
+                        class="mb-5 rounded-lg border border-[#E4B4B0] bg-[#FDF1F0] px-4 py-3 text-sm text-[#8B2E26]"
                     >
+                        {{ pesanError }}
+                    </div>
+
+                    <form class="flex flex-col gap-5" @submit.prevent="masuk">
                         <div class="grid gap-2">
                             <Label for="email" :class="authLabelClass"
                                 >Email</Label
@@ -150,9 +201,11 @@ const features = [
                                 name="email"
                                 required
                                 v-focus
+                                v-model="form.email"
                                 autocomplete="email"
                                 placeholder="nama@gmail.com"
                                 :class="authInputClass"
+                                :disabled="processing"
                             />
                             <InputError :message="errors.email" />
                         </div>
@@ -165,11 +218,27 @@ const features = [
                                 id="password"
                                 name="password"
                                 required
+                                v-model="form.password"
                                 autocomplete="current-password"
                                 placeholder="Masukkan kata sandi"
                                 :class="authInputClass"
+                                :disabled="processing"
                             />
                             <InputError :message="errors.password" />
+
+                            <div class="flex items-center gap-2 pt-1">
+                                <Checkbox
+                                    id="remember"
+                                    v-model="form.remember"
+                                    :disabled="processing"
+                                />
+                                <Label
+                                    for="remember"
+                                    class="text-sm font-normal text-[#555]"
+                                    >Ingat saya</Label
+                                >
+                            </div>
+
                             <div
                                 v-if="canResetPassword"
                                 class="pt-1 text-center"
@@ -202,7 +271,7 @@ const features = [
                                 >Daftar Sekarang</TextLink
                             >
                         </p>
-                    </Form>
+                    </form>
                 </div>
             </div>
         </section>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
+import { onMounted, reactive, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import DashCard from '@/components/dashboard/DashCard.vue';
+import { ApiError, api } from '@/lib/api';
 
 interface DokumenItem {
     id: number;
@@ -13,6 +16,7 @@ interface DokumenItem {
     catatan_admin: string | null;
     preview_url: string;
     download_url: string;
+    file_url: string;
 }
 
 interface PengajuanDetail {
@@ -23,59 +27,185 @@ interface PengajuanDetail {
     role: string;
     role_label: string;
     status_akun: string;
+    status_verifikasi?: string;
     tanggal_daftar: string | null;
     profil: { label: string; value: string }[];
     dokumen: DokumenItem[];
 }
 
-const props = defineProps<{
+interface DetailResponse {
     pengajuan: PengajuanDetail;
     kendala_persetujuan: string[];
     dapat_disetujui: boolean;
-}>();
+}
 
-const approveForm = useForm({ verifikasi: '' });
-const rejectForm = useForm({ alasan: '' });
+interface PesanResponse {
+    message: string;
+}
 
-const documentForms = props.pengajuan.dokumen.map((document) => ({
-    id: document.id,
-    form: useForm({
+interface DocumentForm {
+    status_pemeriksaan: string;
+    catatan_admin: string;
+    errors: Record<string, string>;
+    processing: boolean;
+}
+
+const props = defineProps<DetailResponse>();
+
+const detail = ref<PengajuanDetail>(props.pengajuan);
+const kendala = ref<string[]>(props.kendala_persetujuan);
+const dapatDisetujui = ref(props.dapat_disetujui);
+
+const approveProcessing = ref(false);
+const approveErrors = ref<Record<string, string>>({});
+
+const rejectForm = reactive({ catatan: '' });
+const rejectErrors = ref<Record<string, string>>({});
+const rejectProcessing = ref(false);
+
+const documentForms = reactive<Record<number, DocumentForm>>({});
+
+for (const dokumen of props.pengajuan.dokumen) {
+    documentForms[dokumen.id] = {
         status_pemeriksaan: '',
-        catatan_admin: document.catatan_admin ?? '',
-    }),
-}));
+        catatan_admin: dokumen.catatan_admin ?? '',
+        errors: {},
+        processing: false,
+    };
+}
 
-function setujuiAkun(): void {
-    if (
-        window.confirm(
-            `Setujui akun ${props.pengajuan.nama}? Akun akan langsung dapat digunakan untuk login.`,
-        )
-    ) {
-        approveForm.post(`/admin/pengajuan/${props.pengajuan.id}/setujui`, {
-            preserveScroll: true,
-        });
+function pesanGagal(error: unknown, fallback: string): void {
+    if (error instanceof ApiError) {
+        const fieldErrors = error.fieldErrors;
+
+        if (Object.keys(fieldErrors).length > 0) {
+            return;
+        }
+
+        toast.error(error.message);
+        return;
+    }
+
+    toast.error(fallback);
+}
+
+async function muatDetail(): Promise<void> {
+    try {
+        const response = await api.get<DetailResponse>(
+            `/api/v1/admin/pengajuan/${props.pengajuan.id}`,
+        );
+
+        detail.value = response.pengajuan;
+        kendala.value = response.kendala_persetujuan;
+        dapatDisetujui.value = response.dapat_disetujui;
+    } catch (error) {
+        pesanGagal(error, 'Tidak dapat memuat detail pengajuan.');
     }
 }
 
-function tolakAkun(): void {
-    rejectForm.post(`/admin/pengajuan/${props.pengajuan.id}/tolak`, {
-        preserveScroll: true,
-    });
+async function setujuiAkun(): Promise<void> {
+    if (
+        !window.confirm(
+            `Setujui akun ${detail.value.nama}? Akun akan langsung dapat digunakan untuk login.`,
+        )
+    ) {
+        return;
+    }
+
+    approveProcessing.value = true;
+    approveErrors.value = {};
+
+    try {
+        const response = await api.patch<PesanResponse>(
+            `/api/v1/admin/pengajuan/${props.pengajuan.id}`,
+            { status: 'verified' },
+        );
+
+        toast.success(response.message);
+        await muatDetail();
+    } catch (error) {
+        if (error instanceof ApiError) {
+            approveErrors.value = error.fieldErrors;
+        }
+
+        pesanGagal(error, 'Pengajuan tidak dapat disetujui.');
+    } finally {
+        approveProcessing.value = false;
+    }
 }
 
-function kirimPemeriksaan(
-    id: number,
-    form: (typeof documentForms)[number]['form'],
-): void {
-    form.post(`/admin/pengajuan/${props.pengajuan.id}/dokumen/${id}/periksa`, {
-        preserveScroll: true,
-    });
+async function tolakAkun(): Promise<void> {
+    rejectProcessing.value = true;
+    rejectErrors.value = {};
+
+    try {
+        const response = await api.patch<PesanResponse>(
+            `/api/v1/admin/pengajuan/${props.pengajuan.id}`,
+            { status: 'rejected', catatan: rejectForm.catatan },
+        );
+
+        toast.success(response.message);
+        rejectForm.catatan = '';
+        await muatDetail();
+    } catch (error) {
+        if (error instanceof ApiError) {
+            rejectErrors.value = error.fieldErrors;
+        }
+
+        pesanGagal(error, 'Pengajuan tidak dapat ditolak.');
+    } finally {
+        rejectProcessing.value = false;
+    }
+}
+
+async function kirimPemeriksaan(id: number): Promise<void> {
+    const form = documentForms[id];
+
+    if (!form) {
+        return;
+    }
+
+    form.processing = true;
+    form.errors = {};
+
+    try {
+        const response = await api.post<PesanResponse>(
+            `/api/v1/admin/pengajuan/${props.pengajuan.id}/documents/${id}/review`,
+            {
+                status_pemeriksaan: form.status_pemeriksaan,
+                catatan_admin: form.catatan_admin,
+            },
+        );
+
+        toast.success(response.message);
+        await muatDetail();
+    } catch (error) {
+        if (error instanceof ApiError) {
+            form.errors = error.fieldErrors;
+        }
+
+        pesanGagal(error, 'Hasil pemeriksaan tidak dapat disimpan.');
+    } finally {
+        form.processing = false;
+    }
+}
+
+onMounted(() => {
+    void muatDetail();
+});
+
+function statusVerifikasi(): string {
+    return detail.value.status_verifikasi ?? detail.value.status_akun;
 }
 
 function labelStatus(status: string): string {
     return (
         (
             {
+                pending: 'Menunggu',
+                verified: 'Terverifikasi',
+                rejected: 'Ditolak',
+                // Nilai database dan status dokumen tetap didukung.
                 menunggu: 'Menunggu',
                 aktif: 'Aktif',
                 ditolak: 'Ditolak',
@@ -86,9 +216,9 @@ function labelStatus(status: string): string {
 }
 
 function warnaStatus(status: string): string {
-    if (status === 'aktif' || status === 'disetujui')
+    if (status === 'verified' || status === 'aktif' || status === 'disetujui')
         return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300';
-    if (status === 'ditolak')
+    if (status === 'rejected' || status === 'ditolak')
         return 'bg-red-100 text-red-800 dark:bg-red-950 dark:text-red-300';
     return 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300';
 }
@@ -113,7 +243,7 @@ defineOptions({
 </script>
 
 <template>
-    <Head :title="`Detail Pengajuan - ${pengajuan.nama}`" />
+    <Head :title="`Detail Pengajuan - ${detail.nama}`" />
 
     <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
         <header
@@ -133,9 +263,9 @@ defineOptions({
             </div>
             <span
                 class="inline-flex w-fit rounded-full px-3 py-1.5 text-sm font-medium"
-                :class="warnaStatus(pengajuan.status_akun)"
+                :class="warnaStatus(statusVerifikasi())"
             >
-                {{ labelStatus(pengajuan.status_akun) }}
+                {{ labelStatus(statusVerifikasi()) }}
             </span>
         </header>
 
@@ -150,7 +280,7 @@ defineOptions({
                                 Nama penanggung jawab
                             </dt>
                             <dd class="mt-1 font-medium">
-                                {{ pengajuan.nama }}
+                                {{ detail.nama }}
                             </dd>
                         </div>
                         <div>
@@ -158,13 +288,13 @@ defineOptions({
                                 Role pendaftar
                             </dt>
                             <dd class="mt-1 font-medium">
-                                {{ pengajuan.role_label }}
+                                {{ detail.role_label }}
                             </dd>
                         </div>
                         <div>
                             <dt class="text-xs text-muted-foreground">Email</dt>
                             <dd class="mt-1 font-medium break-all">
-                                {{ pengajuan.email }}
+                                {{ detail.email }}
                             </dd>
                         </div>
                         <div>
@@ -172,7 +302,7 @@ defineOptions({
                                 Nomor telepon
                             </dt>
                             <dd class="mt-1 font-medium">
-                                {{ pengajuan.nomor_telepon || '-' }}
+                                {{ detail.nomor_telepon || '-' }}
                             </dd>
                         </div>
                         <div class="sm:col-span-2">
@@ -180,19 +310,19 @@ defineOptions({
                                 Tanggal pendaftaran
                             </dt>
                             <dd class="mt-1 font-medium">
-                                {{ tanggal(pengajuan.tanggal_daftar) }}
+                                {{ tanggal(detail.tanggal_daftar) }}
                             </dd>
                         </div>
                     </dl>
                 </DashCard>
 
-                <DashCard :judul="`Data profil ${pengajuan.role_label}`">
+                <DashCard :judul="`Data profil ${detail.role_label}`">
                     <dl
-                        v-if="pengajuan.profil.length"
+                        v-if="detail.profil.length"
                         class="grid gap-4 sm:grid-cols-2"
                     >
                         <div
-                            v-for="field in pengajuan.profil"
+                            v-for="field in detail.profil"
                             :key="field.label"
                             class="min-w-0"
                         >
@@ -218,16 +348,13 @@ defineOptions({
                     </p>
 
                     <div
-                        v-if="kendala_persetujuan.length"
+                        v-if="kendala.length"
                         class="mt-4 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
                     >
                         <p class="font-medium">Belum dapat disetujui</p>
                         <ul class="mt-2 list-inside list-disc space-y-1">
-                            <li
-                                v-for="kendala in kendala_persetujuan"
-                                :key="kendala"
-                            >
-                                {{ kendala }}
+                            <li v-for="item in kendala" :key="item">
+                                {{ item }}
                             </li>
                         </ul>
                     </div>
@@ -239,58 +366,59 @@ defineOptions({
                     </div>
 
                     <div
-                        v-if="pengajuan.status_akun === 'menunggu'"
+                        v-if="
+                            statusVerifikasi() === 'pending' ||
+                            statusVerifikasi() === 'menunggu'
+                        "
                         class="mt-4 flex flex-col gap-3"
                     >
                         <button
                             type="button"
-                            :disabled="
-                                !dapat_disetujui || approveForm.processing
-                            "
+                            :disabled="!dapatDisetujui || approveProcessing"
                             class="rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
                             @click="setujuiAkun"
                         >
                             {{
-                                approveForm.processing
+                                approveProcessing
                                     ? 'Memproses...'
                                     : 'Setujui akun'
                             }}
                         </button>
                         <p
-                            v-if="approveForm.errors.verifikasi"
+                            v-if="approveErrors.verifikasi"
                             class="text-sm text-red-600"
                         >
-                            {{ approveForm.errors.verifikasi }}
+                            {{ approveErrors.verifikasi }}
                         </p>
 
                         <form
                             @submit.prevent="tolakAkun"
                             class="space-y-2 border-t pt-4"
                         >
-                            <label for="alasan" class="text-sm font-medium"
-                                >Alasan penolakan</label
+                            <label for="catatan" class="text-sm font-medium"
+                                >Catatan penolakan</label
                             >
                             <textarea
-                                id="alasan"
-                                v-model="rejectForm.alasan"
+                                id="catatan"
+                                v-model="rejectForm.catatan"
                                 rows="3"
                                 maxlength="1000"
                                 placeholder="Jelaskan alasan penolakan kepada pendaftar..."
                                 class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
                             />
                             <p
-                                v-if="rejectForm.errors.alasan"
+                                v-if="rejectErrors.catatan"
                                 class="text-sm text-red-600"
                             >
-                                {{ rejectForm.errors.alasan }}
+                                {{ rejectErrors.catatan }}
                             </p>
                             <button
                                 type="submit"
-                                :disabled="rejectForm.processing"
+                                :disabled="rejectProcessing"
                                 class="w-full rounded-lg border border-red-300 px-4 py-2.5 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950"
                             >
                                 {{
-                                    rejectForm.processing
+                                    rejectProcessing
                                         ? 'Memproses...'
                                         : 'Tolak pengajuan'
                                 }}
@@ -325,41 +453,41 @@ defineOptions({
                 browser atau mengunduhnya.
             </p>
 
-            <div v-if="pengajuan.dokumen.length" class="mt-4 divide-y border-t">
+            <div v-if="detail.dokumen.length" class="mt-4 divide-y border-t">
                 <article
-                    v-for="document in pengajuan.dokumen"
-                    :key="document.id"
+                    v-for="dokumen in detail.dokumen"
+                    :key="dokumen.id"
                     class="grid gap-4 py-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,0.8fr)]"
                 >
                     <div class="min-w-0">
                         <div class="flex flex-wrap items-center gap-2">
-                            <h3 class="font-medium">{{ document.jenis }}</h3>
+                            <h3 class="font-medium">{{ dokumen.jenis }}</h3>
                             <span
                                 class="rounded-full bg-muted px-2 py-0.5 text-[11px] text-muted-foreground"
-                                >{{ document.sifat }}</span
+                                >{{ dokumen.sifat }}</span
                             >
                             <span
                                 class="rounded-full px-2 py-0.5 text-[11px] font-medium"
-                                :class="warnaStatus(document.status)"
-                                >{{ labelStatus(document.status) }}</span
+                                :class="warnaStatus(dokumen.status)"
+                                >{{ labelStatus(dokumen.status) }}</span
                             >
                         </div>
                         <p class="mt-2 text-sm break-all">
-                            {{ document.nama_file }}
+                            {{ dokumen.nama_file }}
                         </p>
                         <p class="mt-1 text-xs text-muted-foreground">
-                            {{ document.format }} · Diunggah
-                            {{ tanggal(document.tanggal_upload) }}
+                            {{ dokumen.format }} · Diunggah
+                            {{ tanggal(dokumen.tanggal_upload) }}
                         </p>
                         <p
-                            v-if="document.catatan_admin"
+                            v-if="dokumen.catatan_admin"
                             class="mt-2 rounded-lg bg-muted p-3 text-sm"
                         >
-                            Catatan terakhir: {{ document.catatan_admin }}
+                            Catatan terakhir: {{ dokumen.catatan_admin }}
                         </p>
                         <div class="mt-3 flex flex-wrap items-center gap-4">
                             <a
-                                :href="document.preview_url"
+                                :href="dokumen.preview_url"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 class="inline-flex text-sm font-semibold text-primary hover:underline"
@@ -367,7 +495,7 @@ defineOptions({
                                 Lihat dokumen ↗
                             </a>
                             <a
-                                :href="document.download_url"
+                                :href="dokumen.file_url"
                                 class="inline-flex text-sm font-medium text-muted-foreground hover:text-foreground hover:underline"
                             >
                                 Unduh dokumen
@@ -375,68 +503,73 @@ defineOptions({
                         </div>
                     </div>
 
-                    <template v-for="item in documentForms" :key="item.id">
-                        <form
-                            v-if="
-                                pengajuan.status_akun === 'menunggu' &&
-                                item.id === document.id
-                            "
-                            @submit.prevent="
-                                kirimPemeriksaan(item.id, item.form)
-                            "
-                            class="space-y-2 rounded-lg bg-muted/40 p-3"
+                    <form
+                        v-if="
+                            (statusVerifikasi() === 'pending' ||
+                                statusVerifikasi() === 'menunggu') &&
+                            documentForms[dokumen.id]
+                        "
+                        @submit.prevent="kirimPemeriksaan(dokumen.id)"
+                        class="space-y-2 rounded-lg bg-muted/40 p-3"
+                    >
+                        <label class="block text-sm font-medium"
+                            >Keputusan pemeriksaan</label
                         >
-                            <label class="block text-sm font-medium"
-                                >Keputusan pemeriksaan</label
-                            >
-                            <select
-                                v-model="item.form.status_pemeriksaan"
-                                class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                            >
-                                <option value="">Pilih keputusan</option>
-                                <option value="disetujui">
-                                    Setujui dokumen
-                                </option>
-                                <option value="ditolak">Tolak dokumen</option>
-                            </select>
-                            <label class="block text-sm font-medium"
-                                >Catatan Admin</label
-                            >
-                            <textarea
-                                v-model="item.form.catatan_admin"
-                                rows="2"
-                                maxlength="1000"
-                                placeholder="Wajib diisi jika dokumen ditolak"
-                                class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
-                            />
-                            <p
-                                v-if="item.form.errors.catatan_admin"
-                                class="text-sm text-red-600"
-                            >
-                                {{ item.form.errors.catatan_admin }}
-                            </p>
-                            <p
-                                v-if="item.form.errors.status_pemeriksaan"
-                                class="text-sm text-red-600"
-                            >
-                                {{ item.form.errors.status_pemeriksaan }}
-                            </p>
-                            <button
-                                type="submit"
-                                :disabled="
-                                    item.form.processing ||
-                                    !item.form.status_pemeriksaan
-                                "
-                                class="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-background disabled:opacity-50"
-                            >
-                                {{
-                                    item.form.processing
-                                        ? 'Menyimpan...'
-                                        : 'Simpan hasil pemeriksaan'
-                                }}
-                            </button>
-                        </form>
-                    </template>
+                        <select
+                            v-model="
+                                documentForms[dokumen.id].status_pemeriksaan
+                            "
+                            class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                        >
+                            <option value="">Pilih keputusan</option>
+                            <option value="disetujui">Setujui dokumen</option>
+                            <option value="ditolak">Tolak dokumen</option>
+                        </select>
+                        <label class="block text-sm font-medium"
+                            >Catatan Admin</label
+                        >
+                        <textarea
+                            v-model="documentForms[dokumen.id].catatan_admin"
+                            rows="2"
+                            maxlength="1000"
+                            placeholder="Wajib diisi jika dokumen ditolak"
+                            class="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+                        />
+                        <p
+                            v-if="
+                                documentForms[dokumen.id].errors.catatan_admin
+                            "
+                            class="text-sm text-red-600"
+                        >
+                            {{ documentForms[dokumen.id].errors.catatan_admin }}
+                        </p>
+                        <p
+                            v-if="
+                                documentForms[dokumen.id].errors
+                                    .status_pemeriksaan
+                            "
+                            class="text-sm text-red-600"
+                        >
+                            {{
+                                documentForms[dokumen.id].errors
+                                    .status_pemeriksaan
+                            }}
+                        </p>
+                        <button
+                            type="submit"
+                            :disabled="
+                                documentForms[dokumen.id].processing ||
+                                !documentForms[dokumen.id].status_pemeriksaan
+                            "
+                            class="rounded-lg border px-3 py-2 text-xs font-semibold hover:bg-background disabled:opacity-50"
+                        >
+                            {{
+                                documentForms[dokumen.id].processing
+                                    ? 'Menyimpan...'
+                                    : 'Simpan hasil pemeriksaan'
+                            }}
+                        </button>
+                    </form>
                 </article>
             </div>
 
