@@ -124,7 +124,6 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
             Event ditutup pada {{ event.tanggal_ditutup }}. Event ini siap
             diarsipkan oleh Admin.
         </div>
-        
 
         <DashCard judul="Informasi event">
             <dl class="grid gap-4 sm:grid-cols-2">
@@ -134,11 +133,15 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Lokasi</dt>
-                    <dd class="text-sm font-medium">{{ event.lokasi ?? '-' }}</dd>
+                    <dd class="text-sm font-medium">
+                        {{ event.lokasi ?? '-' }}
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Kategori</dt>
-                    <dd class="text-sm font-medium">{{ event.kategori ?? '-' }}</dd>
+                    <dd class="text-sm font-medium">
+                        {{ event.kategori ?? '-' }}
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Status</dt>
@@ -148,7 +151,7 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                 </div>
                 <div class="sm:col-span-2">
                     <dt class="text-xs text-neutral-500">Deskripsi</dt>
-                    <dd class="whitespace-pre-line text-sm">
+                    <dd class="text-sm whitespace-pre-line">
                         {{ event.deskripsi || '-' }}
                     </dd>
                 </div>
@@ -157,7 +160,9 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
 
         <Dialog :open="dialogBuka" @update:open="ubahDialog">
             <DialogContent class="sm:max-w-md">
-                <DialogHeader class="items-center text-center sm:items-start sm:text-left">
+                <DialogHeader
+                    class="items-center text-center sm:items-start sm:text-left"
+                >
                     <div
                         class="mb-2 flex size-12 items-center justify-center rounded-full bg-amber-100 text-amber-700"
                     >
@@ -177,8 +182,8 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                     class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
                     data-test="peringatan-belum-selesai"
                 >
-                    Tanggal selesai event ini ({{ event.periode }}) belum terlewati. Tutup
-                    hanya jika event memang sudah berakhir.
+                    Tanggal selesai event ini ({{ event.periode }}) belum
+                    terlewati. Tutup hanya jika event memang sudah berakhir.
                 </div>
 
                 <DialogFooter class="gap-2">

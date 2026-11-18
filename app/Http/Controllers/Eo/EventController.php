@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Eo;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Eo\StoreEventRequest;
 use App\Http\Requests\Eo\UpdateEventRequest;
 use App\Models\Event;
 use App\Support\FormatTanggal;
@@ -42,21 +41,6 @@ class EventController extends Controller
         return Inertia::render('eo/events/Create', [
             'kategori' => config('lokamitra.kategori_event', []),
         ]);
-    }
-
-    public function store(StoreEventRequest $request): RedirectResponse
-    {
-        $event = new Event($request->validated());
-        $event->eo_id = $request->user()->eo->eo_id;
-        $event->status_event = Event::STATUS_DRAFT;
-        $event->save();
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil dibuat sebagai draft.",
-        ]);
-
-        return to_route('eo.events.index');
     }
 
     private function periode(Event $event): string

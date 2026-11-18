@@ -44,9 +44,21 @@ const props = defineProps<{
 }>();
 
 const tab = computed(() => [
-    { kunci: 'menunggu_verifikasi', label: 'Menunggu verifikasi', jumlah: props.ringkasan.menunggu },
-    { kunci: 'dipublikasikan', label: 'Terverifikasi', jumlah: props.ringkasan.terverifikasi },
-    { kunci: 'ditutup', label: 'Siap diarsipkan', jumlah: props.ringkasan.ditutup },
+    {
+        kunci: 'menunggu_verifikasi',
+        label: 'Menunggu verifikasi',
+        jumlah: props.ringkasan.menunggu,
+    },
+    {
+        kunci: 'dipublikasikan',
+        label: 'Terverifikasi',
+        jumlah: props.ringkasan.terverifikasi,
+    },
+    {
+        kunci: 'ditutup',
+        label: 'Siap diarsipkan',
+        jumlah: props.ringkasan.ditutup,
+    },
     { kunci: 'diarsipkan', label: 'Arsip', jumlah: props.ringkasan.diarsip },
 ]);
 
@@ -61,7 +73,13 @@ type Aksi = 'verifikasi' | 'arsip';
 
 const teksAksi: Record<
     Aksi,
-    { url: string; judul: string; deskripsi: string; tombol: string; proses: string }
+    {
+        url: string;
+        judul: string;
+        deskripsi: string;
+        tombol: string;
+        proses: string;
+    }
 > = {
     verifikasi: {
         url: 'verifikasi',
@@ -192,7 +210,9 @@ defineOptions({
                     data-test="baris-event"
                 >
                     <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold">{{ e.nama }}</p>
+                        <p class="truncate text-sm font-semibold">
+                            {{ e.nama }}
+                        </p>
                         <p class="text-xs text-neutral-500">
                             {{
                                 [e.eo, e.periode, e.lokasi, e.kategori]
@@ -200,7 +220,9 @@ defineOptions({
                                     .join(' · ')
                             }}
                         </p>
-                        <p class="text-xs text-neutral-400">{{ keterangan(e) }}</p>
+                        <p class="text-xs text-neutral-400">
+                            {{ keterangan(e) }}
+                        </p>
                     </div>
 
                     <button
@@ -246,7 +268,11 @@ defineOptions({
                         :href="link.url"
                         preserve-scroll
                         class="rounded-md border px-3 py-1.5 text-xs"
-                        :class="link.active ? 'bg-[#17564C] text-white' : 'hover:bg-muted'"
+                        :class="
+                            link.active
+                                ? 'bg-[#17564C] text-white'
+                                : 'hover:bg-muted'
+                        "
                     >
                         {{ labelHalaman(link.label) }}
                     </Link>
@@ -262,11 +288,16 @@ defineOptions({
 
         <Dialog :open="dialogBuka" @update:open="ubahDialog">
             <DialogContent class="sm:max-w-md">
-                <DialogHeader class="items-center text-center sm:items-start sm:text-left">
+                <DialogHeader
+                    class="items-center text-center sm:items-start sm:text-left"
+                >
                     <div
                         class="mb-2 flex size-12 items-center justify-center rounded-full bg-[#17564C]/10 text-[#17564C]"
                     >
-                        <ShieldCheck v-if="aksi === 'verifikasi'" class="size-6" />
+                        <ShieldCheck
+                            v-if="aksi === 'verifikasi'"
+                            class="size-6"
+                        />
                         <Archive v-else class="size-6" />
                     </div>
                     <DialogTitle>{{ teksAksi[aksi].judul }}</DialogTitle>
@@ -309,7 +340,11 @@ defineOptions({
                         data-test="konfirmasi-aksi"
                         @click="konfirmasi"
                     >
-                        {{ memproses ? teksAksi[aksi].proses : teksAksi[aksi].tombol }}
+                        {{
+                            memproses
+                                ? teksAksi[aksi].proses
+                                : teksAksi[aksi].tombol
+                        }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
