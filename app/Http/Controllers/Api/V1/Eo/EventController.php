@@ -61,6 +61,32 @@ class EventController extends Controller
         ]);
     }
 
+    public function close(Request $request, Event $event): JsonResponse
+    {
+        $this->pastikanPemilik($request, $event);
+
+        if (! $event->dapatDitutup()) {
+            return response()->json(['message' => 'Hanya event yang sudah terverifikasi (dipublikasikan) yang dapat ditutup.'], 422);
+        }
+
+        $berhasil = Event::query()
+            ->whereKey($event->getKey())
+            ->where('status_event', Event::STATUS_DIPUBLIKASIKAN)
+            ->update([
+                'status_event' => Event::STATUS_DITUTUP,
+                'tanggal_ditutup' => now(),
+            ]);
+
+        if (! $berhasil) {
+            return response()->json(['message' => 'Hanya event yang sudah terverifikasi (dipublikasikan) yang dapat ditutup.'], 422);
+        }
+
+        return response()->json([
+            'message' => 'Event berhasil ditutup.',
+            'data' => new EventResource($event->refresh()),
+        ]);
+    }
+
     private function pastikanPemilik(Request $request, Event $event): void
     {
         $eo = $request->user()?->eo;
