@@ -143,9 +143,16 @@ Route::prefix('v1')->middleware('web')->group(function () {
                     Route::get('/', [AdminEventController::class, 'index'])
                         ->name('index');
 
+                    Route::get('/arsip', [AdminEventController::class, 'archives'])
+                        ->name('archives');
+
                     Route::post('/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
                         ->whereNumber('event')
                         ->name('verifikasi');
+
+                    Route::post('/{event}/arsip', [AdminEventController::class, 'archive'])
+                        ->whereNumber('event')
+                        ->name('archive');
                 });
         });
     });

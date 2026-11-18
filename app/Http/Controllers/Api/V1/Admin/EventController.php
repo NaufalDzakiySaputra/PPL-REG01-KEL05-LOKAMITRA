@@ -48,4 +48,36 @@ class EventController extends Controller
             'data' => new EventResource($event->refresh()),
         ]);
     }
+
+    public function archives(): AnonymousResourceCollection
+    {
+        $events = Event::query()
+            ->with('eo')
+            ->where('status_event', Event::STATUS_DIARSIPKAN)
+            ->latest('tanggal_diarsipkan')
+            ->paginate(10);
+
+        return EventResource::collection($events);
+    }
+
+    public function archive(Request $request, Event $event): JsonResponse
+    {
+        abort_if($request->user()->admin === null, 403, 'Profil Admin tidak ditemukan.');
+
+        if ($event->status_event !== Event::STATUS_DITUTUP) {
+            return response()->json([
+                'message' => 'Hanya event berstatus ditutup yang dapat diarsipkan.',
+            ], 422);
+        }
+
+        $event->update([
+            'status_event' => Event::STATUS_DIARSIPKAN,
+            'tanggal_diarsipkan' => now(),
+        ]);
+
+        return response()->json([
+            'message' => 'Event berhasil diarsipkan.',
+            'data' => new EventResource($event->refresh()),
+        ]);
+    }
 }
