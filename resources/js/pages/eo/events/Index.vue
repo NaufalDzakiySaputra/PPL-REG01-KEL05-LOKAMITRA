@@ -1,163 +1,163 @@
+
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { CalendarDays } from '@lucide/vue';
 import DashCard from '@/components/dashboard/DashCard.vue';
 
-// Daftar event milik EO. Data dari EventController@index.
 type EventItem = {
     id: number;
     nama: string;
-    kategori: string | null;
-    lokasi: string | null;
+    kategori: string;
+    lokasi: string;
     periode: string;
     status: string;
 };
 
-type Paginator<T> = {
-    data: T[];
-    links: { url: string | null; label: string; active: boolean }[];
+type PaginationLink = {
+    url: string | null;
+    label: string;
+    active: boolean;
+};
+
+type EventPaginator = {
+    data: EventItem[];
+    current_page: number;
+    last_page: number;
     total: number;
+    links: PaginationLink[];
 };
 
-defineProps<{ events: Paginator<EventItem> }>();
-
-const labelStatus: Record<string, { teks: string; kelas: string }> = {
-    draft: { teks: 'Draft', kelas: 'bg-neutral-200 text-neutral-700' },
-    menunggu_verifikasi: {
-        teks: 'Menunggu verifikasi Admin',
-        kelas: 'bg-amber-100 text-amber-800',
-    },
-    dipublikasikan: {
-        teks: 'Terverifikasi Admin',
-        kelas: 'bg-emerald-100 text-emerald-800',
-    },
-    ditutup: { teks: 'Ditutup', kelas: 'bg-neutral-200 text-neutral-700' },
-    diarsipkan: {
-        teks: 'Diarsipkan',
-        kelas: 'bg-neutral-200 text-neutral-700',
-    },
-};
-
-function status(s: string): { teks: string; kelas: string } {
-    return labelStatus[s] ?? labelStatus.draft;
-}
-
-function labelHalaman(label: string): string {
-    return label.replace('&laquo;', '«').replace('&raquo;', '»');
-}
+defineProps<{
+    events: EventPaginator;
+}>();
 
 defineOptions({
     layout: {
-        breadcrumbs: [{ title: 'Event', href: '/eo/events' }],
+        breadcrumbs: [
+            { title: 'Event', href: '/eo/events' },
+        ],
     },
 });
+
+function formatStatus(status: string) {
+    return status.replaceAll('_', ' ');
+}
 </script>
 
 <template>
-    <Head title="Event" />
+    <Head title="Daftar Event" />
 
-    <div class="flex flex-col gap-4 p-4 md:p-6">
-        <header class="flex flex-wrap items-start justify-between gap-3">
+    <div class="flex flex-col gap-5 p-4 md:p-6">
+        <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h1 class="text-2xl font-extrabold">Event</h1>
-                <p class="text-sm text-neutral-600 dark:text-muted-foreground">
-                    Daftar event yang Anda kelola.
+                <h1 class="text-2xl font-extrabold">Daftar Event</h1>
+                <p class="mt-1 text-sm text-neutral-600 dark:text-muted-foreground">
+                    Kelola dan pantau event yang telah Anda buat.
                 </p>
             </div>
+
             <Link
                 href="/eo/events/buat"
-                class="inline-flex items-center justify-center rounded-lg bg-[#17564C] px-4 py-2.5 text-sm font-semibold text-white hover:opacity-90"
-                data-test="buat-event"
+                class="rounded-lg bg-[#17564C] px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
             >
-                Buat event baru
+                + Buat Event
             </Link>
         </header>
 
         <DashCard>
+            <div class="mb-4">
+                <h2 class="font-bold">Daftar Event Saya</h2>
+                <p class="text-xs text-neutral-500">
+                    {{ events.total }} event ditemukan
+                </p>
+            </div>
+
             <div
                 v-if="events.data.length === 0"
-                class="flex flex-col items-center gap-2 px-4 py-10 text-center"
+                class="flex flex-col items-center gap-2 py-12 text-center"
             >
-                <CalendarDays class="size-8 text-neutral-400" />
+                <div class="text-4xl">📅</div>
                 <p class="font-semibold">Belum ada event</p>
                 <p class="text-sm text-neutral-500">
-                    Mulai dengan mencatat informasi awal event pertama Anda.
+                    Mulai buat event pertama Anda.
                 </p>
                 <Link
                     href="/eo/events/buat"
-                    class="mt-2 inline-flex rounded-lg border border-[#17564C] px-4 py-2 text-sm font-semibold text-[#17564C] hover:bg-[#17564C]/5"
+                    class="mt-2 text-sm font-semibold text-[#17564C] hover:underline"
                 >
-                    Buat event baru
+                    Buat Event
                 </Link>
             </div>
 
-            <ul v-else class="divide-y divide-neutral-200/80">
-                
-            <li
-                v-for="e in events.data"
-                :key="e.id"
-                class="flex flex-wrap items-center justify-between gap-3 py-4"
-            >
-                <div class="min-w-0 flex-1">
-                    <p class="truncate text-sm font-semibold">
-                        {{ e.nama }}
-                    </p>
-                    <p class="text-xs text-neutral-500">
-                        {{
-                            [e.periode, e.lokasi, e.kategori]
-                                .filter(Boolean)
-                                .join(' · ')
-                        }}
-                    </p>
-                </div>
+            <div v-else class="overflow-x-auto">
+                <table class="w-full min-w-[650px] text-left text-sm">
+                    <thead>
+                        <tr class="border-b text-xs text-neutral-500">
+                            <th class="px-3 py-3 font-semibold">Nama Event</th>
+                            <th class="px-3 py-3 font-semibold">Kategori</th>
+                            <th class="px-3 py-3 font-semibold">Lokasi</th>
+                            <th class="px-3 py-3 font-semibold">Periode</th>
+                            <th class="px-3 py-3 font-semibold">Status</th>
+                            <th class="px-3 py-3 text-right font-semibold">Aksi</th>
+                        </tr>
+                    </thead>
 
-                <div class="flex shrink-0 items-center gap-3">
-                    <span
-                        :class="[
-                            'whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold',
-                            status(e.status).kelas,
-                        ]"
-                    >
-                        {{ status(e.status).teks }}
-                    </span>
-
-                    <Link
-                        v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
-                        :href="`/eo/events/${e.id}/ubah`"
-                        class="text-xs font-semibold text-[#17564C] hover:underline"
-                    >
-                        Ubah
-                    </Link>
-                </div>
-            </li>
-
-            </ul>
+                    <tbody>
+                        <tr
+                            v-for="event in events.data"
+                            :key="event.id"
+                            class="border-b last:border-0 hover:bg-neutral-50 dark:hover:bg-white/5"
+                        >
+                            <td class="px-3 py-4 font-semibold">
+                                {{ event.nama }}
+                            </td>
+                            <td class="px-3 py-4">{{ event.kategori }}</td>
+                            <td class="px-3 py-4">{{ event.lokasi }}</td>
+                            <td class="px-3 py-4">{{ event.periode }}</td>
+                            <td class="px-3 py-4">
+                                <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-700 dark:bg-white/10 dark:text-neutral-200">
+                                    {{ formatStatus(event.status) }}
+                                </span>
+                            </td>
+                            <td class="px-3 py-4 text-right">
+                                <Link
+                                    :href="`/eo/events/${event.id}`"
+                                    class="font-semibold text-[#17564C] hover:underline"
+                                >
+                                    Lihat Detail
+                                </Link>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
 
             <div
-                v-if="events.links.length > 3"
-                class="mt-3 flex flex-wrap justify-end gap-1 border-t pt-3"
+                v-if="events.last_page > 1"
+                class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4"
             >
-                <template v-for="(link, i) in events.links" :key="i">
-                    <Link
-                        v-if="link.url"
-                        :href="link.url"
-                        preserve-scroll
-                        class="rounded-md border px-3 py-1.5 text-xs"
-                        :class="
-                            link.active
-                                ? 'bg-[#17564C] text-white'
-                                : 'hover:bg-muted'
-                        "
-                    >
-                        {{ labelHalaman(link.label) }}
-                    </Link>
-                    <span
-                        v-else
-                        class="rounded-md border px-3 py-1.5 text-xs text-muted-foreground opacity-50"
-                    >
-                        {{ labelHalaman(link.label) }}
-                    </span>
-                </template>
+                <p class="text-xs text-neutral-500">
+                    Halaman {{ events.current_page }} dari {{ events.last_page }}
+                </p>
+
+                <div class="flex flex-wrap gap-1">
+                    <template v-for="(link, index) in events.links" :key="index">
+                        <Link
+                            v-if="link.url"
+                            :href="link.url"
+                            preserve-scroll
+                            class="rounded-md border px-3 py-1.5 text-xs"
+                            :class="link.active
+                                ? 'border-[#17564C] bg-[#17564C] text-white'
+                                : 'border-neutral-200 hover:bg-neutral-100 dark:border-border'"
+                            v-html="link.label"
+                        />
+                        <span
+                            v-else
+                            class="rounded-md border border-neutral-200 px-3 py-1.5 text-xs opacity-40 dark:border-border"
+                            v-html="link.label"
+                        />
+                    </template>
+                </div>
             </div>
         </DashCard>
     </div>

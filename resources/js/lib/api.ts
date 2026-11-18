@@ -5,7 +5,7 @@ type ErrorPayload = {
     errors?: ValidationErrors;
 };
 
-type HttpMethod = 'GET' | 'PATCH' | 'PUT' | 'DELETE';
+type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 type CsrfHeader = {
     name: 'X-CSRF-TOKEN' | 'X-XSRF-TOKEN';
@@ -176,6 +176,9 @@ async function request<T>(
 
 export const api = {
     get: <T>(url: string): Promise<T> => request<T>('GET', url),
+
+    post: <T>(url: string, body: unknown): Promise<T> =>
+        request<T>('POST', url, body),
 
     patch: <T>(url: string, body: unknown): Promise<T> =>
         request<T>('PATCH', url, body),

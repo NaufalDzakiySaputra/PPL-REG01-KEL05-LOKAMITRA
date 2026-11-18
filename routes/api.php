@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Eo\StakeholderController;
+use App\Http\Controllers\Api\V1\Eo\EventOptionController;
+use App\Http\Controllers\Api\V1\Eo\PartnershipRequestController;
 use App\Http\Controllers\Api\V1\CsrfTokenController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
@@ -41,6 +44,20 @@ Route::prefix('v1')->middleware('web')->group(function () {
 
             Route::put('/me/role-profile', [RoleProfileController::class, 'update'])
                 ->name('api.v1.me.role-profile.update');
+        
+        Route::middleware('role:eo')->prefix('eo')->group(function () {
+            Route::get('/stakeholders', [StakeholderController::class, 'index'])
+                ->name('api.v1.eo.stakeholders.index');
+
+            Route::get('/stakeholders/{type}/{user}', [StakeholderController::class, 'show'])
+                ->name('api.v1.eo.stakeholders.show');
+
+            Route::get('/events/options', [EventOptionController::class, 'index'])
+                ->name('api.v1.eo.events.options');
+            
+            Route::post('/partnership-requests', [PartnershipRequestController::class, 'store'])
+                ->name('api.v1.eo.partnership-requests.store');
+            });
         });
     });
 });

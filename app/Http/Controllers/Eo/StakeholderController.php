@@ -183,6 +183,7 @@ class StakeholderController extends Controller
         return Inertia::render('eo/stakeholders/Show', [
             'stakeholder' => [
                 'id' => $stakeholder->id,
+                'type' => $type,
                 'nama' => $profil->{$item['nama']},
                 'nama_akun' => $stakeholder->name,
                 'kategori' => $item['label'],
