@@ -24,7 +24,7 @@ const user = computed(() => page.props.auth.user);
             <div
                 class="flex h-16 w-full items-center justify-between px-6 md:px-10"
             >
-                <Link href="/events" class="flex items-center">
+                <Link href="/" class="flex items-center">
                     <LokamitraLogo />
                 </Link>
 
