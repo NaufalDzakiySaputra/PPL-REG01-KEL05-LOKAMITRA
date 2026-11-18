@@ -92,6 +92,9 @@ Route::prefix('v1')->middleware('web')->group(function () {
             Route::put('/events/{event}', [EoEventController::class, 'update'])
                 ->whereNumber('event')
                 ->name('events.update');
+            Route::post('/events/{event}/tutup', [EoEventController::class, 'close'])
+                ->whereNumber('event')
+                ->name('events.close');
         });
 
         // Verifikasi pendaftaran hanya untuk Admin. File dokumen tetap privat.

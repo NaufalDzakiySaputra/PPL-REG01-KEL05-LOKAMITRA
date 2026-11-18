@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Eo;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Support\FormatTanggal;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -70,27 +69,6 @@ class EventController extends Controller
             'event' => $this->detail($event),
             'kategori' => config('lokamitra.kategori_event', []),
         ]);
-    }
-
-    public function tutup(Request $request, Event $event): RedirectResponse
-    {
-        $this->pastikanPemilik($request, $event);
-
-        // Update atomik: hanya berhasil jika masih dipublikasikan dan sudah
-        // mencapai tanggal selesai, jadi klik ganda tidak menimpa tanggal_ditutup.
-        $berhasil = Event::query()
-            ->whereKey($event->getKey())
-            ->where('status_event', Event::STATUS_DIPUBLIKASIKAN)
-            ->update([
-                'status_event' => Event::STATUS_DITUTUP,
-                'tanggal_ditutup' => now(),
-            ]);
-
-        Inertia::flash('toast', $berhasil
-            ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" telah ditutup dan siap diarsipkan Admin."]
-            : ['type' => 'error', 'message' => 'Hanya event yang sudah terverifikasi (dipublikasikan) yang dapat ditutup.']);
-
-        return back();
     }
 
     private function pastikanPemilik(Request $request, Event $event): void
