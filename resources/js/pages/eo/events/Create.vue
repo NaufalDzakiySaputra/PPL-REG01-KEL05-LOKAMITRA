@@ -1,15 +1,32 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
+import { reactive, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import InputError from '@/components/InputError.vue';
+import { ApiError, api } from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
 
 defineProps<{ kategori: string[] }>();
+
+type EventResourceData = {
+    id: number;
+    nama_event: string;
+    kategori_event: string | null;
+    tanggal_mulai: string;
+    tanggal_selesai: string;
+    periode: string;
+    lokasi: string;
+    deskripsi: string | null;
+    status: string;
+    status_label: string;
+};
 
 const hariIni = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
 
-const form = useForm({
+const form = reactive({
     nama_event: '',
     kategori_event: '',
     tanggal_mulai: '',
@@ -17,6 +34,9 @@ const form = useForm({
     lokasi: '',
     deskripsi: '',
 });
+
+const errors = ref<Record<string, string>>({});
+const processing = ref(false);
 
 function samakanTanggal(): void {
     if (
@@ -28,8 +48,38 @@ function samakanTanggal(): void {
     }
 }
 
-function simpan(): void {
-    form.post('/eo/events', { preserveScroll: true });
+async function simpan(): Promise<void> {
+    processing.value = true;
+    errors.value = {};
+
+    try {
+        const response = await api.post<ApiResponse<EventResourceData>>(
+            '/api/v1/eo/events',
+            {
+                nama_event: form.nama_event,
+                kategori_event: form.kategori_event || null,
+                tanggal_mulai: form.tanggal_mulai,
+                tanggal_selesai: form.tanggal_selesai,
+                lokasi: form.lokasi,
+                deskripsi: form.deskripsi || null,
+            },
+        );
+
+        toast.success(
+            response.message ??
+                'Event baru berhasil dibuat dan menunggu verifikasi.',
+        );
+        router.visit('/eo/events');
+    } catch (error) {
+        if (error instanceof ApiError) {
+            errors.value = error.fieldErrors;
+            toast.error(error.message);
+        } else {
+            toast.error('Terjadi kesalahan saat menyimpan event.');
+        }
+    } finally {
+        processing.value = false;
+    }
 }
 
 const kelasInput =
@@ -71,9 +121,9 @@ defineOptions({
                             maxlength="255"
                             placeholder="Contoh: Festival Budaya Banyumas"
                             :class="kelasInput"
-                            :aria-invalid="Boolean(form.errors.nama_event)"
+                            :aria-invalid="Boolean(errors.nama_event)"
                         />
-                        <InputError :message="form.errors.nama_event" />
+                        <InputError :message="errors.nama_event" />
                     </div>
 
                     <div class="space-y-2">
@@ -84,14 +134,14 @@ defineOptions({
                             id="kategori_event"
                             v-model="form.kategori_event"
                             :class="kelasInput"
-                            :aria-invalid="Boolean(form.errors.kategori_event)"
+                            :aria-invalid="Boolean(errors.kategori_event)"
                         >
                             <option value="">Pilih kategori</option>
                             <option v-for="k in kategori" :key="k" :value="k">
                                 {{ k }}
                             </option>
                         </select>
-                        <InputError :message="form.errors.kategori_event" />
+                        <InputError :message="errors.kategori_event" />
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
@@ -109,12 +159,10 @@ defineOptions({
                                 type="date"
                                 :min="hariIni"
                                 :class="kelasInput"
-                                :aria-invalid="
-                                    Boolean(form.errors.tanggal_mulai)
-                                "
+                                :aria-invalid="Boolean(errors.tanggal_mulai)"
                                 @change="samakanTanggal"
                             />
-                            <InputError :message="form.errors.tanggal_mulai" />
+                            <InputError :message="errors.tanggal_mulai" />
                         </div>
                         <div class="space-y-2">
                             <label
@@ -130,13 +178,9 @@ defineOptions({
                                 type="date"
                                 :min="form.tanggal_mulai || hariIni"
                                 :class="kelasInput"
-                                :aria-invalid="
-                                    Boolean(form.errors.tanggal_selesai)
-                                "
+                                :aria-invalid="Boolean(errors.tanggal_selesai)"
                             />
-                            <InputError
-                                :message="form.errors.tanggal_selesai"
-                            />
+                            <InputError :message="errors.tanggal_selesai" />
                         </div>
                     </div>
 
@@ -151,9 +195,9 @@ defineOptions({
                             maxlength="255"
                             placeholder="Contoh: Alun-alun Purwokerto, Banyumas, Jawa Tengah"
                             :class="kelasInput"
-                            :aria-invalid="Boolean(form.errors.lokasi)"
+                            :aria-invalid="Boolean(errors.lokasi)"
                         />
-                        <InputError :message="form.errors.lokasi" />
+                        <InputError :message="errors.lokasi" />
                     </div>
 
                     <div class="space-y-2">
@@ -167,9 +211,9 @@ defineOptions({
                             maxlength="5000"
                             placeholder="Ceritakan tujuan dan gambaran singkat event."
                             :class="kelasInput"
-                            :aria-invalid="Boolean(form.errors.deskripsi)"
+                            :aria-invalid="Boolean(errors.deskripsi)"
                         />
-                        <InputError :message="form.errors.deskripsi" />
+                        <InputError :message="errors.deskripsi" />
                     </div>
 
                     <div
@@ -183,15 +227,11 @@ defineOptions({
                         </Link>
                         <button
                             type="submit"
-                            :disabled="form.processing"
+                            :disabled="processing"
                             class="inline-flex items-center justify-center rounded-lg bg-[#17564C] px-5 py-2.5 text-sm font-semibold text-white hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                             data-test="simpan-event"
                         >
-                            {{
-                                form.processing
-                                    ? 'Menyimpan...'
-                                    : 'Simpan event'
-                            }}
+                            {{ processing ? 'Menyimpan...' : 'Simpan event' }}
                         </button>
                     </div>
                 </form>

@@ -85,8 +85,8 @@ class EventController extends Controller
 
         return back();
     }
-    
-    public function verifikasi(Request $request, Event $event):  RedirectResponse
+
+    public function verifikasi(Request $request, Event $event): RedirectResponse
     {
         $admin = $request->user()->admin;
 
@@ -101,9 +101,9 @@ class EventController extends Controller
                 'tanggal_diverifikasi' => now(),
             ]);
 
-         Inertia::flash('toast', $berhasil
-            ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" berhasil diverifikasi dan kini tampil di daftar publik."]
-            : ['type' => 'error', 'message' => 'Event ini tidak sedang menunggu verifikasi.']);
+        Inertia::flash('toast', $berhasil
+           ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" berhasil diverifikasi dan kini tampil di daftar publik."]
+           : ['type' => 'error', 'message' => 'Event ini tidak sedang menunggu verifikasi.']);
 
         return back();
     }

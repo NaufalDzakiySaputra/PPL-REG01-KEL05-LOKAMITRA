@@ -92,55 +92,53 @@ defineOptions({
             </div>
 
             <ul v-else class="divide-y divide-neutral-200/80">
-                
-            <li
-                v-for="e in events.data"
-                :key="e.id"
-                class="flex flex-wrap items-center justify-between gap-3 py-4"
-            >
-                <div class="min-w-0 flex-1">
-                    <Link
-                        :href="`/eo/events/${e.id}`"
-                        class="block truncate text-sm font-semibold hover:underline"
-                        data-test="lihat-event"
-                    >
-                        {{ e.nama }}
-                    </Link>
-                    <p class="text-xs text-neutral-500">
-                        {{
-                            [e.periode, e.lokasi, e.kategori]
-                                .filter(Boolean)
-                                .join(' · ')
-                        }}
-                    </p>
-                </div>
+                <li
+                    v-for="e in events.data"
+                    :key="e.id"
+                    class="flex flex-wrap items-center justify-between gap-3 py-4"
+                >
+                    <div class="min-w-0 flex-1">
+                        <Link
+                            :href="`/eo/events/${e.id}`"
+                            class="block truncate text-sm font-semibold hover:underline"
+                            data-test="lihat-event"
+                        >
+                            {{ e.nama }}
+                        </Link>
+                        <p class="text-xs text-neutral-500">
+                            {{
+                                [e.periode, e.lokasi, e.kategori]
+                                    .filter(Boolean)
+                                    .join(' · ')
+                            }}
+                        </p>
+                    </div>
 
-                <div class="flex shrink-0 items-center gap-3">
-                    <span
-                        :class="[
-                            'whitespace-nowrap rounded-full px-3 py-1 text-xs font-semibold',
-                            status(e.status).kelas,
-                        ]"
-                    >
-                        {{ status(e.status).teks }}
-                    </span>
-                    <Link
-                        :href="`/eo/events/${e.id}`"
-                        class="text-xs font-semibold text-neutral-600 hover:underline"
-                    >
-                        Lihat
-                    </Link>
+                    <div class="flex shrink-0 items-center gap-3">
+                        <span
+                            :class="[
+                                'rounded-full px-3 py-1 text-xs font-semibold whitespace-nowrap',
+                                status(e.status).kelas,
+                            ]"
+                        >
+                            {{ status(e.status).teks }}
+                        </span>
+                        <Link
+                            :href="`/eo/events/${e.id}`"
+                            class="text-xs font-semibold text-neutral-600 hover:underline"
+                        >
+                            Lihat
+                        </Link>
 
-                    <Link
-                        v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
-                        :href="`/eo/events/${e.id}/ubah`"
-                        class="text-xs font-semibold text-[#17564C] hover:underline"
-                    >
-                        Ubah
-                    </Link>
-                </div>
-            </li>
-
+                        <Link
+                            v-if="!['ditutup', 'diarsipkan'].includes(e.status)"
+                            :href="`/eo/events/${e.id}/ubah`"
+                            class="text-xs font-semibold text-[#17564C] hover:underline"
+                        >
+                            Ubah
+                        </Link>
+                    </div>
+                </li>
             </ul>
 
             <div

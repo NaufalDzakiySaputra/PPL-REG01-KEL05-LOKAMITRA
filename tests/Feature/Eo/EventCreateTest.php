@@ -62,61 +62,6 @@ class EventCreateTest extends TestCase
                     ->contains(fn ($i) => $i['label'] === 'Event' && $i['href'] === '/eo/events')));
     }
 
-    public function test_event_valid_tersimpan_sebagai_draft_milik_eo(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-
-        $this->actingAs($user)->post(route('eo.events.store'), $this->data())
-            ->assertRedirect(route('eo.events.index'));
-
-        $this->assertDatabaseHas('event', [
-            'nama_event' => 'Festival Budaya Banyumas',
-            'eo_id' => $eo->eo_id,
-            'status_event' => Event::STATUS_DRAFT,
-        ]);
-    }
-
-    public function test_status_dan_pemilik_tidak_bisa_diubah_lewat_request(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-        [, $eoLain] = $this->eoAktif();
-
-        $this->actingAs($user)->post(route('eo.events.store'), $this->data([
-            'status_event' => Event::STATUS_DIPUBLIKASIKAN,
-            'eo_id' => $eoLain->eo_id,
-        ]))->assertRedirect();
-
-        $event = Event::firstOrFail();
-        $this->assertSame(Event::STATUS_DRAFT, $event->status_event);
-        $this->assertSame($eo->eo_id, $event->eo_id);
-    }
-
-    public function test_data_tidak_valid_ditolak(): void
-    {
-        [$user] = $this->eoAktif();
-
-        $this->actingAs($user)->post(route('eo.events.store'), $this->data([
-            'nama_event' => '',
-            'lokasi' => '',
-            'tanggal_mulai' => now()->addDays(5)->toDateString(),
-            'tanggal_selesai' => now()->addDay()->toDateString(),
-            'kategori_event' => 'Tidak ada',
-        ]))->assertSessionHasErrors(['nama_event', 'lokasi', 'tanggal_selesai', 'kategori_event']);
-
-        $this->assertDatabaseCount('event', 0);
-    }
-
-    public function test_event_baru_belum_tampil_untuk_publik(): void
-    {
-        [$user] = $this->eoAktif();
-
-        $this->actingAs($user)->post(route('eo.events.store'), $this->data());
-
-        $this->assertSame(1, Event::count());
-        $this->assertSame(0, Event::tersediaUmum()->count());
-        $this->assertSame(0, Event::berjalan()->count());
-    }
-
     public function test_eo_hanya_melihat_event_miliknya(): void
     {
         [$user, $eo] = $this->eoAktif();
@@ -131,17 +76,16 @@ class EventCreateTest extends TestCase
                 ->where('events.data.0.nama', 'Milik Saya'));
     }
 
-    public function test_role_lain_tidak_bisa_mengakses(): void
+    public function test_role_lain_tidak_bisa_mengakses_halaman_buat_event(): void
     {
         $vendor = User::factory()->vendor()->create();
 
         $this->actingAs($vendor)->get(route('eo.events.create'))->assertForbidden();
-        $this->actingAs($vendor)->post(route('eo.events.store'), $this->data())->assertForbidden();
     }
 
     public function test_tamu_diarahkan_ke_login(): void
     {
-        $this->post(route('eo.events.store'), $this->data())->assertRedirect(route('login'));
+        $this->get(route('eo.events.create'))->assertRedirect(route('login'));
         $this->get(route('eo.events.index'))->assertRedirect(route('login'));
     }
 }

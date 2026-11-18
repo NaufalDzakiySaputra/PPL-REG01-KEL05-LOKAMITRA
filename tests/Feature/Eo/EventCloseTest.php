@@ -77,7 +77,7 @@ class EventCloseTest extends TestCase
         $this->assertNull($event->tanggal_ditutup);
     }
 
-     public function test_event_yang_masih_berlangsung_boleh_ditutup(): void
+    public function test_event_yang_masih_berlangsung_boleh_ditutup(): void
     {
         [$user, $eo] = $this->eoAktif();
         $event = $this->buatEvent($eo, Event::STATUS_DIPUBLIKASIKAN, -1, 3);

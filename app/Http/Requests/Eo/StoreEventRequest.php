@@ -42,7 +42,7 @@ class StoreEventRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'reqired' => ':attribute wajib diisi.',
+            'required' => ':attribute wajib diisi.',
             'max' => ':attribute tidak boleh lebih dari :max karakter.',
             'date' => ':attribute harus berupa tanggal yang valid.',
             'in' => 'Pilihan :attribute tidak valid.',

@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\CsrfTokenController;
+use App\Http\Controllers\Api\V1\Eo\EventController as EoEventController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\RoleProfileController;
@@ -76,6 +77,12 @@ Route::prefix('v1')->middleware('web')->group(function () {
             Route::get('/role-profile/dokumen/{dokumen}/download', [RoleProfileController::class, 'downloadDokumen'])
                 ->whereNumber('dokumen')
                 ->name('api.v1.role-profile.dokumen.download');
+        });
+
+        // Modul Manajemen Event untuk Event Organizer.
+        Route::middleware('role:eo')->prefix('eo')->name('api.v1.eo.')->group(function () {
+            Route::post('/events', [EoEventController::class, 'store'])
+                ->name('events.store');
         });
 
         // Verifikasi pendaftaran hanya untuk Admin. File dokumen tetap privat.
