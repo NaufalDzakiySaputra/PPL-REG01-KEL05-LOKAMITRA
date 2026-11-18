@@ -25,7 +25,8 @@ use Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
-Route::inertia('/', 'Welcome')->name('home');
+// Landing page: katalog event publik (F-06) ditampilkan di root.
+Route::get('/', [EventPublikController::class, 'index'])->name('home');
 
 // Informasi event publik (F-06): daftar event terverifikasi tanpa login.
 Route::get('/events', [EventPublikController::class, 'index'])->name('events.index');
