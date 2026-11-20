@@ -86,6 +86,19 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/events', [AdminEventController::class, 'index'])
             ->name('events.index');
 
+        // Pemeriksaan informasi publik event sebelum/sesudah diverifikasi.
+        Route::get('/events/{event}', [AdminEventController::class, 'show'])
+            ->whereNumber('event')
+            ->name('events.show');
+
+        Route::get('/events/{event}/dokumen/{dokumen}', [AdminEventController::class, 'unduhDokumen'])
+            ->whereNumber(['event', 'dokumen'])
+            ->name('events.dokumen.unduh');
+
+        Route::get('/events/{event}/dokumen/{dokumen}/pratinjau', [AdminEventController::class, 'pratinjauDokumen'])
+            ->whereNumber(['event', 'dokumen'])
+            ->name('events.dokumen.pratinjau');
+
         Route::post('/events/{event}/arsipkan', [AdminEventController::class, 'arsipkan'])
             ->whereNumber('event')
             ->name('events.archive');
