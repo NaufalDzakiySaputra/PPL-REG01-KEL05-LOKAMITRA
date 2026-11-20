@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class DokumenEvent extends Model
 {
+    public const JENIS_LAYOUT = 'layout';
+
+    public const JENIS_DOKUMEN = 'dokumen';
+
+    public const DAFTAR_JENIS = [self::JENIS_LAYOUT, self::JENIS_DOKUMEN];
+
     protected $table = 'dokumen_event';
 
     protected $primaryKey = 'dokumen_event_id';
@@ -15,6 +21,7 @@ class DokumenEvent extends Model
         'event_id',
         'pengunggah_akun_id',
         'nama_dokumen',
+        'jenis',
         'lokasi_file',
         'tanggal_upload',
     ];

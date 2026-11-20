@@ -14,6 +14,7 @@ const props = defineProps<{
         kategori: string | null;
         lokasi: string | null;
         deskripsi: string | null;
+        informasi_regulasi: string | null;
         tanggal_mulai: string;
         tanggal_selesai: string;
     };
@@ -34,6 +35,7 @@ const form = reactive({
     tanggal_selesai: props.event.tanggal_selesai,
     lokasi: props.event.lokasi ?? '',
     deskripsi: props.event.deskripsi ?? '',
+    informasi_regulasi: props.event.informasi_regulasi ?? '',
 });
 
 const errors = ref<Record<string, string>>({});
@@ -59,6 +61,7 @@ async function simpan(): Promise<void> {
                 tanggal_selesai: form.tanggal_selesai,
                 lokasi: form.lokasi,
                 deskripsi: form.deskripsi || null,
+                informasi_regulasi: form.informasi_regulasi || null,
             },
         );
 
@@ -201,6 +204,26 @@ defineOptions({
                         :aria-invalid="Boolean(errors.deskripsi)"
                     />
                     <InputError :message="errors.deskripsi" />
+                </div>
+
+                <div class="space-y-2">
+                    <label for="informasi_regulasi" class="text-sm font-medium"
+                        >Informasi &amp; regulasi</label
+                    >
+                    <textarea
+                        id="informasi_regulasi"
+                        v-model="form.informasi_regulasi"
+                        rows="4"
+                        placeholder="Aturan yang perlu diketahui pengunjung, mis. ketentuan tiket atau barang bawaan."
+                        :class="kelasInput"
+                        :aria-invalid="Boolean(errors.informasi_regulasi)"
+                        data-test="input-regulasi"
+                    />
+                    <p class="text-xs text-neutral-500">
+                        Tampil di bagian "Informasi &amp; regulasi" halaman
+                        detail event publik.
+                    </p>
+                    <InputError :message="errors.informasi_regulasi" />
                 </div>
 
                 <div

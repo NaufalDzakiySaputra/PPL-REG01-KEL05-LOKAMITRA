@@ -10,10 +10,12 @@ use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\CsrfTokenController;
 use App\Http\Controllers\Api\V1\Eo\EventController as EoEventController;
 use App\Http\Controllers\Api\V1\Eo\EventOptionController;
+use App\Http\Controllers\Api\V1\Eo\InformasiPublikEventController;
 use App\Http\Controllers\Api\V1\Eo\PartnershipRequestController;
 use App\Http\Controllers\Api\V1\Eo\StakeholderController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
+use App\Http\Controllers\Api\V1\Publik\EventController as EventPublikController;
 use App\Http\Controllers\Api\V1\RoleProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -30,6 +32,14 @@ use Illuminate\Support\Facades\Route;
 Route::prefix('v1')->middleware('web')->group(function () {
     Route::get('/csrf-token', CsrfTokenController::class)
         ->name('api.v1.csrf-token');
+
+    // Informasi event publik (F-06 / PBI-035): dapat dibaca tanpa login.
+    Route::get('/events', [EventPublikController::class, 'index'])
+        ->name('api.v1.events.index');
+
+    Route::get('/events/{event}', [EventPublikController::class, 'show'])
+        ->whereNumber('event')
+        ->name('api.v1.events.show');
 
     Route::post('/login', [LoginController::class, 'store'])
         ->middleware(['guest:web', 'throttle:login'])
@@ -111,6 +121,43 @@ Route::prefix('v1')->middleware('web')->group(function () {
 
             Route::post('/partnership-requests', [PartnershipRequestController::class, 'store'])
                 ->name('partnership-requests.store');
+
+            // Informasi publik event (PBI-035): rundown, layout/dokumen, kontak darurat.
+            Route::get('/events/{event}/informasi-publik', [InformasiPublikEventController::class, 'show'])
+                ->whereNumber('event')
+                ->name('events.informasi-publik.show');
+
+            Route::post('/events/{event}/rundown', [InformasiPublikEventController::class, 'storeRundown'])
+                ->whereNumber('event')
+                ->name('events.rundown.store');
+
+            Route::put('/events/{event}/rundown/{rundown}', [InformasiPublikEventController::class, 'updateRundown'])
+                ->whereNumber(['event', 'rundown'])
+                ->name('events.rundown.update');
+
+            Route::delete('/events/{event}/rundown/{rundown}', [InformasiPublikEventController::class, 'destroyRundown'])
+                ->whereNumber(['event', 'rundown'])
+                ->name('events.rundown.destroy');
+
+            Route::post('/events/{event}/dokumen', [InformasiPublikEventController::class, 'storeDokumen'])
+                ->whereNumber('event')
+                ->name('events.dokumen.store');
+
+            Route::delete('/events/{event}/dokumen/{dokumen}', [InformasiPublikEventController::class, 'destroyDokumen'])
+                ->whereNumber(['event', 'dokumen'])
+                ->name('events.dokumen.destroy');
+
+            Route::post('/events/{event}/kontak-darurat', [InformasiPublikEventController::class, 'storeKontak'])
+                ->whereNumber('event')
+                ->name('events.kontak-darurat.store');
+
+            Route::put('/events/{event}/kontak-darurat/{kontak}', [InformasiPublikEventController::class, 'updateKontak'])
+                ->whereNumber(['event', 'kontak'])
+                ->name('events.kontak-darurat.update');
+
+            Route::delete('/events/{event}/kontak-darurat/{kontak}', [InformasiPublikEventController::class, 'destroyKontak'])
+                ->whereNumber(['event', 'kontak'])
+                ->name('events.kontak-darurat.destroy');
         });
 
         // Modul Admin.

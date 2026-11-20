@@ -98,6 +98,11 @@ class Event extends Model
         return $this->hasMany(DokumenEvent::class, 'event_id', 'event_id');
     }
 
+    public function kontakDarurat(): HasMany
+    {
+        return $this->hasMany(KontakDaruratEvent::class, 'event_id', 'event_id');
+    }
+
     public function forum(): HasMany
     {
         return $this->hasMany(Forum::class, 'event_id', 'event_id');

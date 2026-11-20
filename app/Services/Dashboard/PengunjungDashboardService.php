@@ -2,8 +2,11 @@
 
 namespace App\Services\Dashboard;
 
+use App\Models\DokumenEvent;
 use App\Models\Event;
 use App\Models\KeanggotaanEvent;
+use App\Models\KontakDaruratEvent;
+use App\Models\Timeline;
 use App\Support\FormatTanggal;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Route;
@@ -77,7 +80,8 @@ class PengunjungDashboardService
         ];
     }
 
-    // Detail satu event untuk halaman publik (deskripsi, jadwal, pendaftaran).
+    // Detail satu event untuk halaman publik (deskripsi, jadwal, rundown,
+    // dokumen/layout, regulasi, dan kontak darurat).
     public function detailEvent(Event $e): array
     {
         return [
@@ -97,8 +101,58 @@ class PengunjungDashboardService
                 'daftar_sampai' => FormatTanggal::panjang($e->tanggal_selesai),
                 'sedang_berjalan' => $e->tanggal_mulai->lte(today()),
                 'informasi_regulasi' => $e->informasi_regulasi,
+                'rundown' => $this->rundownPublik($e),
+                'dokumen' => $this->dokumenPublik($e),
+                'kontak_darurat' => $this->kontakDaruratPublik($e),
             ],
         ];
+    }
+
+    // Rundown acara untuk halaman publik, urut jam mulai.
+    private function rundownPublik(Event $e): array
+    {
+        return $e->timeline()
+            ->orderBy('waktu_mulai')
+            ->get()
+            ->map(fn (Timeline $t) => [
+                'judul' => $t->judul_aktivitas,
+                'deskripsi' => $t->deskripsi,
+                'waktu_mulai' => $t->waktu_mulai
+                    ? $t->waktu_mulai->locale('id')->translatedFormat('d M, H:i')
+                    : null,
+                'waktu_selesai' => $t->waktu_selesai
+                    ? $t->waktu_selesai->locale('id')->translatedFormat('H:i')
+                    : null,
+            ])
+            ->all();
+    }
+
+    // Daftar dokumen/layout yang bisa diunduh pengunjung lewat route terkontrol.
+    private function dokumenPublik(Event $e): array
+    {
+        return $e->dokumen()
+            ->orderBy('nama_dokumen')
+            ->get()
+            ->map(fn (DokumenEvent $d) => [
+                'id' => $d->dokumen_event_id,
+                'nama' => $d->nama_dokumen,
+                'jenis' => $d->jenis ?? DokumenEvent::JENIS_DOKUMEN,
+                'unduh_url' => route('events.dokumen', [$e->event_id, $d->dokumen_event_id], false),
+            ])
+            ->all();
+    }
+
+    // Kontak darurat (maksimal dua per event) untuk halaman publik.
+    private function kontakDaruratPublik(Event $e): array
+    {
+        return $e->kontakDarurat()
+            ->take(KontakDaruratEvent::MAKSIMAL_PER_EVENT)
+            ->get()
+            ->map(fn (KontakDaruratEvent $k) => [
+                'nama' => $k->nama,
+                'nomor' => $k->nomor_telepon,
+            ])
+            ->all();
     }
 
     private function pilihanKategori(): array

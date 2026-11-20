@@ -2,10 +2,14 @@
 
 namespace Tests\Feature\Pengunjung;
 
+use App\Models\DokumenEvent;
 use App\Models\Eo;
 use App\Models\Event;
+use App\Models\KontakDaruratEvent;
+use App\Models\Timeline;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Tests\TestCase;
 
@@ -106,5 +110,122 @@ class EventPublikTest extends TestCase
 
         $this->get(route('events.show', $event->event_id))
             ->assertNotFound();
+    }
+
+    public function test_detail_mengirim_rundown_urut_waktu_mulai(): void
+    {
+        $event = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+
+        // Dibuat tidak urut untuk memastikan service mengurutkannya.
+        Timeline::create([
+            'event_id' => $event->event_id,
+            'judul_aktivitas' => 'Penutupan',
+            'deskripsi' => 'Acara penutup.',
+            'waktu_mulai' => today()->setTime(15, 0),
+            'waktu_selesai' => today()->setTime(17, 0),
+        ]);
+        Timeline::create([
+            'event_id' => $event->event_id,
+            'judul_aktivitas' => 'Pembukaan',
+            'deskripsi' => 'Sambutan panitia.',
+            'waktu_mulai' => today()->setTime(8, 0),
+            'waktu_selesai' => today()->setTime(9, 0),
+        ]);
+
+        $this->get(route('events.show', $event->event_id))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('event.rundown', 2)
+                ->where('event.rundown.0.judul', 'Pembukaan')
+                ->where('event.rundown.1.judul', 'Penutupan'));
+    }
+
+    public function test_detail_tanpa_rundown_dokumen_kontak_tetap_aman(): void
+    {
+        $event = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+
+        $this->get(route('events.show', $event->event_id))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('event.rundown', 0)
+                ->has('event.dokumen', 0)
+                ->has('event.kontak_darurat', 0));
+    }
+
+    public function test_detail_mengirim_maksimal_dua_kontak_darurat(): void
+    {
+        $event = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+
+        KontakDaruratEvent::create(['event_id' => $event->event_id, 'nama' => 'Pos Utama', 'nomor_telepon' => '081111111101']);
+        KontakDaruratEvent::create(['event_id' => $event->event_id, 'nama' => 'Koordinator Medis', 'nomor_telepon' => '081111111102']);
+        KontakDaruratEvent::create(['event_id' => $event->event_id, 'nama' => 'Keamanan Lapangan', 'nomor_telepon' => '081111111103']);
+
+        $this->get(route('events.show', $event->event_id))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page
+                ->has('event.kontak_darurat', 2)
+                ->where('event.kontak_darurat.0.nama', 'Pos Utama'));
+    }
+
+    public function test_dokumen_publik_bisa_diunduh_tanpa_login(): void
+    {
+        $event = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+        Storage::disk('local')->put('dokumen-event/denah-uji.pdf', 'isi pdf uji');
+
+        $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $event->eo_id))->firstOrFail();
+        $dokumen = DokumenEvent::create([
+            'event_id' => $event->event_id,
+            'pengunggah_akun_id' => $akun->id,
+            'nama_dokumen' => 'Denah Venue Uji.pdf',
+            'lokasi_file' => 'dokumen-event/denah-uji.pdf',
+            'tanggal_upload' => now(),
+        ]);
+
+        $this->get(route('events.dokumen', [$event->event_id, $dokumen->dokumen_event_id]))
+            ->assertOk();
+
+        Storage::disk('local')->delete('dokumen-event/denah-uji.pdf');
+    }
+
+    public function test_dokumen_dari_event_lain_mengembalikan_404(): void
+    {
+        $eventA = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+        $eventB = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
+        Storage::disk('local')->put('dokumen-event/rahasia.pdf', 'isi');
+
+        $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $eventA->eo_id))->firstOrFail();
+        $dokumen = DokumenEvent::create([
+            'event_id' => $eventA->event_id,
+            'pengunggah_akun_id' => $akun->id,
+            'nama_dokumen' => 'Denah A.pdf',
+            'lokasi_file' => 'dokumen-event/rahasia.pdf',
+            'tanggal_upload' => now(),
+        ]);
+
+        // Dokumen milik event A diakses lewat event B.
+        $this->get(route('events.dokumen', [$eventB->event_id, $dokumen->dokumen_event_id]))
+            ->assertNotFound();
+
+        Storage::disk('local')->delete('dokumen-event/rahasia.pdf');
+    }
+
+    public function test_dokumen_event_non_publik_mengembalikan_404(): void
+    {
+        $event = $this->buatEvent(Event::STATUS_DRAFT);
+        Storage::disk('local')->put('dokumen-event/draft.pdf', 'isi');
+
+        $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $event->eo_id))->firstOrFail();
+        $dokumen = DokumenEvent::create([
+            'event_id' => $event->event_id,
+            'pengunggah_akun_id' => $akun->id,
+            'nama_dokumen' => 'Denah Draft.pdf',
+            'lokasi_file' => 'dokumen-event/draft.pdf',
+            'tanggal_upload' => now(),
+        ]);
+
+        $this->get(route('events.dokumen', [$event->event_id, $dokumen->dokumen_event_id]))
+            ->assertNotFound();
+
+        Storage::disk('local')->delete('dokumen-event/draft.pdf');
     }
 }

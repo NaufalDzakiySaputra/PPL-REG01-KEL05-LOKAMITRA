@@ -25,13 +25,17 @@ use Laravel\Fortify\Http\Controllers\ConfirmedPasswordStatusController;
 use Laravel\Fortify\Http\Controllers\NewPasswordController;
 use Laravel\Fortify\Http\Controllers\PasswordResetLinkController;
 
-Route::inertia('/', 'Welcome')->name('home');
+// Landing page: katalog event publik (F-06) ditampilkan di root.
+Route::get('/', [EventPublikController::class, 'index'])->name('home');
 
 // Informasi event publik (F-06): daftar event terverifikasi tanpa login.
 Route::get('/events', [EventPublikController::class, 'index'])->name('events.index');
 Route::get('/events/{event}', [EventPublikController::class, 'show'])
     ->name('events.show')
     ->whereNumber('event');
+Route::get('/events/{event}/dokumen/{dokumen}', [EventPublikController::class, 'unduhDokumen'])
+    ->name('events.dokumen')
+    ->whereNumber(['event', 'dokumen']);
 
 // Halaman autentikasi Fortify. Transaksi login/logout sudah pindah ke /api/v1.
 Route::middleware('guest:web')->group(function () {
@@ -97,7 +101,6 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
         Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
         Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
-        Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
 
         // Direktori stakeholder
         Route::get('/stakeholders', [EoStakeholderController::class, 'index'])

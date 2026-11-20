@@ -1,19 +1,15 @@
 <script setup lang="ts">
-import { Link, usePage } from "@inertiajs/vue3";
-import { CalendarDays, LogIn } from "@lucide/vue";
-import { computed } from "vue";
-import LokamitraLogo from "@/components/LokamitraLogo.vue";
-import { Toaster } from "@/components/ui/sonner";
-import { login } from "@/routes";
-import type { BreadcrumbItem } from "@/types";
+import { Link } from '@inertiajs/vue3';
+import { CalendarDays, LogIn } from '@lucide/vue';
+import LokamitraLogo from '@/components/LokamitraLogo.vue';
+import { Toaster } from '@/components/ui/sonner';
+import { login } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 
 // Kerangka halaman publik: header tanpa login, pengunjung bisa melihat event.
 withDefaults(defineProps<{ breadcrumbs?: BreadcrumbItem[] }>(), {
     breadcrumbs: () => [],
 });
-
-const page = usePage();
-const user = computed(() => page.props.auth.user);
 </script>
 
 <template>
@@ -24,7 +20,7 @@ const user = computed(() => page.props.auth.user);
             <div
                 class="flex h-16 w-full items-center justify-between px-6 md:px-10"
             >
-                <Link href="/events" class="flex items-center">
+                <Link href="/" class="flex items-center">
                     <LokamitraLogo />
                 </Link>
 
@@ -36,15 +32,9 @@ const user = computed(() => page.props.auth.user);
                         <CalendarDays class="size-4" /> Event
                     </Link>
 
+                    <!-- Header publik selalu menampilkan "Masuk": pengunjung yang
+                         sudah login akan diarahkan ke dashboard oleh halaman login. -->
                     <Link
-                        v-if="user"
-                        href="/pengunjung/dashboard"
-                        class="rounded-full bg-[#216B60] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#18584F]"
-                    >
-                        Dashboard
-                    </Link>
-                    <Link
-                        v-else
                         :href="login()"
                         class="flex items-center gap-1.5 rounded-full bg-[#216B60] px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#18584F]"
                         data-test="tombol-masuk"

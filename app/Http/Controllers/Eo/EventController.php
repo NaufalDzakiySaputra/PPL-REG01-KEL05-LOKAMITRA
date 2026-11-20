@@ -88,6 +88,7 @@ class EventController extends Controller
             'kategori' => $event->kategori_event,
             'lokasi' => $event->lokasi,
             'deskripsi' => $event->deskripsi,
+            'informasi_regulasi' => $event->informasi_regulasi,
             'tanggal_mulai' => $event->tanggal_mulai->toDateString(),
             'tanggal_selesai' => $event->tanggal_selesai->toDateString(),
             'periode' => $this->periode($event),

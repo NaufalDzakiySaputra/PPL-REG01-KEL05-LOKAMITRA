@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import { onMounted, ref } from 'vue';
@@ -123,33 +122,45 @@ defineOptions({
         </div>
 
         <!-- Profil stakeholder -->
-        <section class="relative overflow-hidden rounded-2xl bg-[#17564C] p-6 text-white shadow-lg md:p-9">
-            <div class="relative flex flex-col gap-6 sm:flex-row sm:items-center">
-                <div class="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-4xl font-extrabold text-[#F2B632] md:size-28">
+        <section
+            class="relative overflow-hidden rounded-2xl bg-[#17564C] p-6 text-white shadow-lg md:p-9"
+        >
+            <div
+                class="relative flex flex-col gap-6 sm:flex-row sm:items-center"
+            >
+                <div
+                    class="flex size-24 shrink-0 items-center justify-center rounded-2xl border border-white/20 bg-white/10 text-4xl font-extrabold text-[#F2B632] md:size-28"
+                >
                     {{ stakeholder.nama.charAt(0).toUpperCase() }}
                 </div>
 
                 <div class="min-w-0 flex-1">
                     <div class="mb-3 flex flex-wrap items-center gap-2">
-                        <span class="inline-flex items-center gap-1.5 rounded-full border border-[#F2B632]/30 bg-[#F2B632]/15 px-3 py-1 text-xs font-semibold text-[#F2B632]">
+                        <span
+                            class="inline-flex items-center gap-1.5 rounded-full border border-[#F2B632]/30 bg-[#F2B632]/15 px-3 py-1 text-xs font-semibold text-[#F2B632]"
+                        >
                             <Building2 class="size-3.5" />
                             {{ stakeholder.kategori }}
                         </span>
 
-                        <span class="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-medium text-emerald-200">
+                        <span
+                            class="rounded-full border border-emerald-300/20 bg-emerald-300/10 px-3 py-1 text-xs font-medium text-emerald-200"
+                        >
                             Terdaftar
                         </span>
                     </div>
 
-                    <h1 class="break-words text-2xl font-extrabold md:text-3xl">
+                    <h1 class="text-2xl font-extrabold break-words md:text-3xl">
                         {{ stakeholder.nama }}
                     </h1>
-                    
+
                     <p class="text-sm text-white">
                         ID Akun: {{ stakeholder.id }}
                     </p>
 
-                    <div class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60">
+                    <div
+                        class="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-white/60"
+                    >
                         <span class="inline-flex items-center gap-2">
                             <UserRound class="size-4" />
                             {{ stakeholder.nama_akun }}
@@ -166,15 +177,20 @@ defineOptions({
             <div class="relative mt-7 border-t border-white/10 pt-5">
                 <p class="text-xs leading-relaxed text-white/60">
                     Profil stakeholder yang terdaftar dalam ekosistem LokaMitra
-                    untuk mendukung kolaborasi dan kebutuhan penyelenggaraan event.
+                    untuk mendukung kolaborasi dan kebutuhan penyelenggaraan
+                    event.
                 </p>
             </div>
         </section>
 
         <!-- Ringkasan -->
         <div class="grid gap-4 sm:grid-cols-2">
-            <div class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-border dark:bg-card">
-                <div class="flex size-12 items-center justify-center rounded-xl bg-[#17564C]/10 text-[#17564C]">
+            <div
+                class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-border dark:bg-card"
+            >
+                <div
+                    class="flex size-12 items-center justify-center rounded-xl bg-[#17564C]/10 text-[#17564C]"
+                >
                     <UserRound class="size-6" />
                 </div>
                 <div>
@@ -183,8 +199,12 @@ defineOptions({
                 </div>
             </div>
 
-            <div class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-border dark:bg-card">
-                <div class="flex size-12 items-center justify-center rounded-xl bg-[#F2B632]/15 text-amber-600">
+            <div
+                class="flex items-center gap-4 rounded-2xl border border-neutral-200 bg-white p-5 dark:border-border dark:bg-card"
+            >
+                <div
+                    class="flex size-12 items-center justify-center rounded-xl bg-[#F2B632]/15 text-amber-600"
+                >
                     <Building2 class="size-6" />
                 </div>
                 <div>
@@ -195,10 +215,16 @@ defineOptions({
         </div>
 
         <!-- Detail profil -->
-        <section class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-border dark:bg-card">
-            <div class="border-b border-neutral-100 px-6 py-5 dark:border-border">
+        <section
+            class="overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-sm dark:border-border dark:bg-card"
+        >
+            <div
+                class="border-b border-neutral-100 px-6 py-5 dark:border-border"
+            >
                 <div class="flex items-center gap-3">
-                    <div class="flex size-10 items-center justify-center rounded-xl bg-[#17564C]/10 text-[#17564C]">
+                    <div
+                        class="flex size-10 items-center justify-center rounded-xl bg-[#17564C]/10 text-[#17564C]"
+                    >
                         <Info class="size-5" />
                     </div>
                     <div>
@@ -212,16 +238,23 @@ defineOptions({
                 </div>
             </div>
 
-            <div v-if="stakeholder.profil.length" class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 md:p-6">
+            <div
+                v-if="stakeholder.profil.length"
+                class="grid grid-cols-1 gap-4 p-5 sm:grid-cols-2 md:p-6"
+            >
                 <div
                     v-for="(item, index) in stakeholder.profil"
                     :key="index"
                     class="min-w-0 rounded-xl border border-neutral-200 bg-neutral-50/70 p-5 dark:border-border dark:bg-muted/20"
                 >
-                    <p class="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                    <p
+                        class="mb-3 text-xs font-semibold tracking-wider text-neutral-500 uppercase"
+                    >
                         {{ item.label }}
                     </p>
-                    <p class="break-words text-base font-bold leading-relaxed text-neutral-800 dark:text-neutral-100">
+                    <p
+                        class="text-base leading-relaxed font-bold break-words text-neutral-800 dark:text-neutral-100"
+                    >
                         {{ item.value }}
                     </p>
                 </div>
@@ -234,7 +267,9 @@ defineOptions({
         </section>
 
         <!-- Form pengajuan kerja sama -->
-        <section class="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card">
+        <section
+            class="rounded-2xl border border-neutral-200 bg-white p-6 shadow-sm dark:border-border dark:bg-card"
+        >
             <div class="mb-5">
                 <h2 class="text-lg font-bold text-neutral-900 dark:text-white">
                     Ajukan Kerja Sama
@@ -258,7 +293,9 @@ defineOptions({
                         class="w-full rounded-xl border border-neutral-300 bg-white px-4 py-3 text-sm dark:border-border dark:bg-background"
                     >
                         <option value="" disabled>
-                            {{ loading ? 'Memuat event...' : 'Pilih event Anda' }}
+                            {{
+                                loading ? 'Memuat event...' : 'Pilih event Anda'
+                            }}
                         </option>
                         <option
                             v-for="event in events"
@@ -290,7 +327,10 @@ defineOptions({
                     {{ errorMessage }}
                 </p>
 
-                <p v-if="successMessage" class="text-sm font-semibold text-green-600">
+                <p
+                    v-if="successMessage"
+                    class="text-sm font-semibold text-green-600"
+                >
                     {{ successMessage }}
                 </p>
 
@@ -299,7 +339,9 @@ defineOptions({
                     :disabled="loading || mengirim || events.length === 0"
                     class="rounded-xl bg-[#17564C] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#12463e] disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {{ mengirim ? 'Mengirim...' : 'Kirim Permintaan Kerja Sama' }}
+                    {{
+                        mengirim ? 'Mengirim...' : 'Kirim Permintaan Kerja Sama'
+                    }}
                 </button>
             </form>
         </section>
