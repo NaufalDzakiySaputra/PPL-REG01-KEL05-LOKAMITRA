@@ -13,6 +13,7 @@ use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
+use App\Http\Controllers\Pemda\EventController as PemdaEventController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
 use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Settings\RoleProfileController;
@@ -133,6 +134,17 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/pemda/dashboard', PemdaDashboardController::class)
         ->middleware('role:pemda')
         ->name('pemda.dashboard');
+
+    // Informasi event publik untuk Pemerintah Daerah (F-06 / PBI-038):
+    // hanya event yang sudah dipublikasikan dan belum berakhir.
+    Route::prefix('pemda')->name('pemda.')->middleware('role:pemda')->group(function () {
+        Route::get('/events', [PemdaEventController::class, 'index'])
+            ->name('events.index');
+
+        Route::get('/events/{event}', [PemdaEventController::class, 'show'])
+            ->whereNumber('event')
+            ->name('events.show');
+    });
 
     Route::get('/komunitas/dashboard', KomunitasDashboardController::class)
         ->middleware('role:komunitas')
