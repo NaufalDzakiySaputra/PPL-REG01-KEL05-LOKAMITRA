@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import DashCard from '@/components/dashboard/DashCard.vue';
@@ -32,9 +31,7 @@ defineProps<{
 
 defineOptions({
     layout: {
-        breadcrumbs: [
-            { title: 'Event', href: '/eo/events' },
-        ],
+        breadcrumbs: [{ title: 'Event', href: '/eo/events' }],
     },
 });
 
@@ -50,7 +47,9 @@ function formatStatus(status: string) {
         <header class="flex flex-wrap items-center justify-between gap-3">
             <div>
                 <h1 class="text-2xl font-extrabold">Daftar Event</h1>
-                <p class="mt-1 text-sm text-neutral-600 dark:text-muted-foreground">
+                <p
+                    class="mt-1 text-sm text-neutral-600 dark:text-muted-foreground"
+                >
                     Kelola dan pantau event yang telah Anda buat.
                 </p>
             </div>
@@ -88,7 +87,6 @@ function formatStatus(status: string) {
                 </Link>
             </div>
 
-
             <div v-else class="overflow-x-auto">
                 <table class="w-full min-w-[650px] text-left text-sm">
                     <thead>
@@ -98,7 +96,9 @@ function formatStatus(status: string) {
                             <th class="px-3 py-3 font-semibold">Lokasi</th>
                             <th class="px-3 py-3 font-semibold">Periode</th>
                             <th class="px-3 py-3 font-semibold">Status</th>
-                            <th class="px-3 py-3 text-right font-semibold">Aksi</th>
+                            <th class="px-3 py-3 text-right font-semibold">
+                                Aksi
+                            </th>
                         </tr>
                     </thead>
 
@@ -115,7 +115,9 @@ function formatStatus(status: string) {
                             <td class="px-3 py-4">{{ event.lokasi }}</td>
                             <td class="px-3 py-4">{{ event.periode }}</td>
                             <td class="px-3 py-4">
-                                <span class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium capitalize text-neutral-700 dark:bg-white/10 dark:text-neutral-200">
+                                <span
+                                    class="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700 capitalize dark:bg-white/10 dark:text-neutral-200"
+                                >
                                     {{ formatStatus(event.status) }}
                                 </span>
                             </td>
@@ -129,7 +131,11 @@ function formatStatus(status: string) {
                                     </Link>
 
                                     <Link
-                                        v-if="!['ditutup', 'diarsipkan'].includes(event.status)"
+                                        v-if="
+                                            !['ditutup', 'diarsipkan'].includes(
+                                                event.status,
+                                            )
+                                        "
                                         :href="`/eo/events/${event.id}/ubah`"
                                         class="font-semibold text-[#17564C] hover:underline"
                                     >
@@ -142,25 +148,30 @@ function formatStatus(status: string) {
                 </table>
             </div>
 
-
             <div
                 v-if="events.last_page > 1"
                 class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t pt-4"
             >
                 <p class="text-xs text-neutral-500">
-                    Halaman {{ events.current_page }} dari {{ events.last_page }}
+                    Halaman {{ events.current_page }} dari
+                    {{ events.last_page }}
                 </p>
 
                 <div class="flex flex-wrap gap-1">
-                    <template v-for="(link, index) in events.links" :key="index">
+                    <template
+                        v-for="(link, index) in events.links"
+                        :key="index"
+                    >
                         <Link
                             v-if="link.url"
                             :href="link.url"
                             preserve-scroll
                             class="rounded-md border px-3 py-1.5 text-xs"
-                            :class="link.active
-                                ? 'border-[#17564C] bg-[#17564C] text-white'
-                                : 'border-neutral-200 hover:bg-neutral-100 dark:border-border'"
+                            :class="
+                                link.active
+                                    ? 'border-[#17564C] bg-[#17564C] text-white'
+                                    : 'border-neutral-200 hover:bg-neutral-100 dark:border-border'
+                            "
                             v-html="link.label"
                         />
                         <span

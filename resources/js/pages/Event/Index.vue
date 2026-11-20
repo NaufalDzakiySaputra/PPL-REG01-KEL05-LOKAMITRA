@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, router } from "@inertiajs/vue3";
-import { ArrowRight, MapPin, Search } from "@lucide/vue";
-import { ref } from "vue";
-import AppPublikLayout from "@/layouts/app/AppPublikLayout.vue";
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ArrowRight, MapPin, Search } from '@lucide/vue';
+import { ref } from 'vue';
+import AppPublikLayout from '@/layouts/app/AppPublikLayout.vue';
 
 // Daftar event publik (F-06): hanya event terverifikasi & dipublikasikan, tanpa login.
 type KartuEvent = {
@@ -30,12 +30,12 @@ const props = defineProps<{
 }>();
 
 const palet = [
-    "#4CC95F",
-    "#F5333A",
-    "#F58A1F",
-    "#3DC1E8",
-    "#3CC9B5",
-    "#F72554",
+    '#4CC95F',
+    '#F5333A',
+    '#F58A1F',
+    '#3DC1E8',
+    '#3CC9B5',
+    '#F72554',
 ];
 
 const q = ref(props.filter.q);
@@ -44,10 +44,10 @@ const q = ref(props.filter.q);
 function terapkan(perubahan: Partial<typeof props.filter> = {}) {
     const params = { ...props.filter, q: q.value, ...perubahan };
     const bersih = Object.fromEntries(
-        Object.entries(params).filter(([, v]) => v !== "" && v !== "terdekat"),
+        Object.entries(params).filter(([, v]) => v !== '' && v !== 'terdekat'),
     );
 
-    router.get("/events", bersih, {
+    router.get('/events', bersih, {
         preserveState: true,
         preserveScroll: true,
         replace: true,

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { Link } from "@inertiajs/vue3";
-import { CalendarDays, LogIn } from "@lucide/vue";
-import LokamitraLogo from "@/components/LokamitraLogo.vue";
-import { Toaster } from "@/components/ui/sonner";
-import { login } from "@/routes";
-import type { BreadcrumbItem } from "@/types";
+import { Link } from '@inertiajs/vue3';
+import { CalendarDays, LogIn } from '@lucide/vue';
+import LokamitraLogo from '@/components/LokamitraLogo.vue';
+import { Toaster } from '@/components/ui/sonner';
+import { login } from '@/routes';
+import type { BreadcrumbItem } from '@/types';
 
 // Kerangka halaman publik: header tanpa login, pengunjung bisa melihat event.
 withDefaults(defineProps<{ breadcrumbs?: BreadcrumbItem[] }>(), {

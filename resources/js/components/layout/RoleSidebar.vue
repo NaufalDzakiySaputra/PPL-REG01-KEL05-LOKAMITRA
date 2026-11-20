@@ -21,7 +21,6 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 const menu = computed(() => page.props.menu);
 
-
 const gelap = computed(() => menu.value?.tema === 'gelap');
 
 const { isCurrentOrParentUrl } = useCurrentUrl();

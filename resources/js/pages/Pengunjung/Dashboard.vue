@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, router } from "@inertiajs/vue3";
-import { ArrowRight, MapPin, Search } from "@lucide/vue";
-import { ref } from "vue";
+import { Head, Link, router } from '@inertiajs/vue3';
+import { ArrowRight, MapPin, Search } from '@lucide/vue';
+import { ref } from 'vue';
 
 // Beranda Pengunjung: tampilan sama dengan landing page katalog event (F-06).
 type KartuEvent = {
@@ -29,12 +29,12 @@ const props = defineProps<{
 }>();
 
 const palet = [
-    "#4CC95F",
-    "#F5333A",
-    "#F58A1F",
-    "#3DC1E8",
-    "#3CC9B5",
-    "#F72554",
+    '#4CC95F',
+    '#F5333A',
+    '#F58A1F',
+    '#3DC1E8',
+    '#3CC9B5',
+    '#F72554',
 ];
 
 const q = ref(props.filter.q);
@@ -43,10 +43,10 @@ const q = ref(props.filter.q);
 function terapkan(perubahan: Partial<typeof props.filter> = {}) {
     const params = { ...props.filter, q: q.value, ...perubahan };
     const bersih = Object.fromEntries(
-        Object.entries(params).filter(([, v]) => v !== "" && v !== "terdekat"),
+        Object.entries(params).filter(([, v]) => v !== '' && v !== 'terdekat'),
     );
 
-    router.get("/pengunjung/dashboard", bersih, {
+    router.get('/pengunjung/dashboard', bersih, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -56,7 +56,7 @@ function terapkan(perubahan: Partial<typeof props.filter> = {}) {
 defineOptions({
     layout: {
         breadcrumbs: [
-            { title: "Beranda Pengunjung", href: "/pengunjung/dashboard" },
+            { title: 'Beranda Pengunjung', href: '/pengunjung/dashboard' },
         ],
     },
 });
