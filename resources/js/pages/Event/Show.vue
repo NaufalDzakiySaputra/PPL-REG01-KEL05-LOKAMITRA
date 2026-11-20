@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from "@inertiajs/vue3";
+import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowLeft,
     CalendarDays,
@@ -12,8 +12,8 @@ import {
     Phone,
     Users,
     Clock,
-} from "@lucide/vue";
-import AppPublikLayout from "@/layouts/app/AppPublikLayout.vue";
+} from '@lucide/vue';
+import AppPublikLayout from '@/layouts/app/AppPublikLayout.vue';
 
 type ButirRundown = {
     judul: string;
@@ -25,6 +25,7 @@ type ButirRundown = {
 type ButirDokumen = {
     id: number;
     nama: string;
+    jenis: 'layout' | 'dokumen';
     unduh_url: string;
 };
 
@@ -54,12 +55,12 @@ type DetailEvent = {
 defineProps<{ event: DetailEvent }>();
 
 const palet = [
-    "#4CC95F",
-    "#F5333A",
-    "#F58A1F",
-    "#3DC1E8",
-    "#3CC9B5",
-    "#F72554",
+    '#4CC95F',
+    '#F5333A',
+    '#F58A1F',
+    '#3DC1E8',
+    '#3CC9B5',
+    '#F72554',
 ];
 </script>
 
@@ -90,7 +91,7 @@ const palet = [
                 <span
                     class="inline-block rounded-full bg-white/25 px-3 py-1 text-xs font-bold tracking-wide uppercase"
                 >
-                    {{ event.kategori ?? "Event" }}
+                    {{ event.kategori ?? 'Event' }}
                 </span>
                 <h1
                     class="mt-3 text-3xl font-extrabold text-white drop-shadow md:text-4xl"
@@ -111,11 +112,11 @@ const palet = [
                         Tentang event ini
                     </h2>
                     <p
-                        class="mt-3 leading-relaxed whitespace-pre-line text-sm text-neutral-600"
+                        class="mt-3 text-sm leading-relaxed whitespace-pre-line text-neutral-600"
                     >
                         {{
                             event.deskripsi ??
-                            "Belum ada deskripsi untuk event ini."
+                            'Belum ada deskripsi untuk event ini.'
                         }}
                     </p>
 
@@ -174,7 +175,7 @@ const palet = [
                                             }}{{
                                                 butir.waktu_selesai
                                                     ? ` – ${butir.waktu_selesai}`
-                                                    : ""
+                                                    : ''
                                             }}
                                         </span>
                                     </p>
@@ -217,9 +218,14 @@ const palet = [
                                             class="block truncate text-sm font-semibold text-neutral-800"
                                             >{{ d.nama }}</span
                                         >
-                                        <span class="text-xs text-neutral-500"
-                                            >Klik untuk mengunduh</span
-                                        >
+                                        <span class="text-xs text-neutral-500">
+                                            {{
+                                                d.jenis === 'layout'
+                                                    ? 'Layout / denah venue'
+                                                    : 'Dokumen pendukung'
+                                            }}
+                                            &middot; Klik untuk mengunduh
+                                        </span>
                                     </span>
                                     <Download
                                         class="size-4 shrink-0 text-[#216B60]"
