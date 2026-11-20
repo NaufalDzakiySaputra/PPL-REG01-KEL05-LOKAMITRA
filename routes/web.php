@@ -2,8 +2,8 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
-use App\Http\Controllers\Admin\PengajuanController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
+use App\Http\Controllers\Admin\PengajuanController;
 use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
@@ -13,8 +13,8 @@ use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
-use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
+use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
 use App\Http\Middleware\PreventBackHistory;
@@ -86,39 +86,33 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
         Route::get('/events', [AdminEventController::class, 'index'])
             ->name('events.index');
 
-        Route::post('/events/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
-            ->whereNumber('event')
-            ->name('events.verify');
-
         Route::post('/events/{event}/arsipkan', [AdminEventController::class, 'arsipkan'])
             ->whereNumber('event')
             ->name('events.archive');
-        
+
     });
 
-            Route::get('/eo/dashboard', EoDashboardController::class)
+    Route::get('/eo/dashboard', EoDashboardController::class)
         ->middleware('role:eo')
         ->name('eo.dashboard');
 
-        Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
-            Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
-            Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
-            Route::post('/events', [EoEventController::class, 'store'])->name('events.store');
-            Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
-            Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
-            Route::put('/events/{event}', [EoEventController::class, 'update'])->whereNumber('event')->name('events.update');
-            Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
+    Route::prefix('eo')->name('eo.')->middleware('role:eo')->group(function () {
+        Route::get('/events', [EoEventController::class, 'index'])->name('events.index');
+        Route::get('/events/buat', [EoEventController::class, 'create'])->name('events.create');
+        Route::get('/events/{event}', [EoEventController::class, 'show'])->whereNumber('event')->name('events.show');
+        Route::get('/events/{event}/ubah', [EoEventController::class, 'edit'])->whereNumber('event')->name('events.edit');
+        Route::post('/events/{event}/tutup', [EoEventController::class, 'tutup'])->whereNumber('event')->name('events.close');
 
-            // Direktori stakeholder
-            Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
-                ->name('stakeholders.index');
+        // Direktori stakeholder
+        Route::get('/stakeholders', [EoStakeholderController::class, 'index'])
+            ->name('stakeholders.index');
 
-            // Detail stakeholder
-            Route::get('/stakeholders/{type}/{user}', [EoStakeholderController::class, 'show'])
-                ->whereIn('type', ['pemda', 'vendor', 'komunitas', 'akademisi', 'media'])
-                ->whereNumber('user')
-                ->name('stakeholders.show');
-        });
+        // Detail stakeholder
+        Route::get('/stakeholders/{type}/{user}', [EoStakeholderController::class, 'show'])
+            ->whereIn('type', ['pemda', 'vendor', 'komunitas', 'akademisi', 'media'])
+            ->whereNumber('user')
+            ->name('stakeholders.show');
+    });
 
     Route::get('/vendor/dashboard', VendorDashboardController::class)
         ->middleware('role:vendor')

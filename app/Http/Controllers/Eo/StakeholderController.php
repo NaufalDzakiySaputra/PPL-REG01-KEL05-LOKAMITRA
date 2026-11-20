@@ -88,8 +88,7 @@ class StakeholderController extends Controller
                     $q->orWhere(function ($subQuery) use ($item) {
                         $subQuery
                             ->where('role', $item['role'])
-                            ->whereHas($item['relation'], fn ($profile) =>
-                                $profile->where('status_verifikasi', 'disetujui')
+                            ->whereHas($item['relation'], fn ($profile) => $profile->where('status_verifikasi', 'disetujui')
                             );
                     });
                 }
@@ -99,20 +98,18 @@ class StakeholderController extends Controller
             $item = $kategori[$filter];
 
             $query->where('role', $item['role'])
-                ->whereHas($item['relation'], fn ($profile) =>
-                    $profile->where('status_verifikasi', 'disetujui')
+                ->whereHas($item['relation'], fn ($profile) => $profile->where('status_verifikasi', 'disetujui')
                 );
         }
 
         if ($kataKunci !== '') {
             $query->where(function ($q) use ($kategori, $kataKunci) {
-                $cari = '%' . $kataKunci . '%';
+                $cari = '%'.$kataKunci.'%';
 
                 $q->where('name', 'like', $cari);
 
                 foreach ($kategori as $item) {
-                    $q->orWhereHas($item['relation'], fn ($profile) =>
-                        $profile->where($item['nama'], 'like', $cari)
+                    $q->orWhereHas($item['relation'], fn ($profile) => $profile->where($item['nama'], 'like', $cari)
                     );
                 }
             });
@@ -164,8 +161,7 @@ class StakeholderController extends Controller
             ->whereKey($user)
             ->where('role', $item['role'])
             ->where('status_akun', User::STATUS_AKTIF)
-            ->whereHas($item['relation'], fn ($profile) =>
-                $profile->where('status_verifikasi', 'disetujui')
+            ->whereHas($item['relation'], fn ($profile) => $profile->where('status_verifikasi', 'disetujui')
             )
             ->with($item['relation'])
             ->firstOrFail();
@@ -183,6 +179,7 @@ class StakeholderController extends Controller
         return Inertia::render('eo/stakeholders/Show', [
             'stakeholder' => [
                 'id' => $stakeholder->id,
+                'type' => $type,
                 'nama' => $profil->{$item['nama']},
                 'nama_akun' => $stakeholder->name,
                 'kategori' => $item['label'],

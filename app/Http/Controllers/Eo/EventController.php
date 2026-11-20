@@ -3,11 +3,8 @@
 namespace App\Http\Controllers\Eo;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Eo\StoreEventRequest;
-use App\Http\Requests\Eo\UpdateEventRequest;
 use App\Models\Event;
 use App\Support\FormatTanggal;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -44,21 +41,6 @@ class EventController extends Controller
         ]);
     }
 
-    public function store(StoreEventRequest $request): RedirectResponse
-    {
-        $event = new Event($request->validated());
-        $event->eo_id = $request->user()->eo->eo_id;
-        $event->status_event = Event::STATUS_DRAFT;
-        $event->save();
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil dibuat sebagai draft.",
-        ]);
-
-        return to_route('eo.events.index');
-    }
-
     private function periode(Event $event): string
     {
         $mulai = FormatTanggal::ringkas($event->tanggal_mulai);
@@ -87,40 +69,6 @@ class EventController extends Controller
             'event' => $this->detail($event),
             'kategori' => config('lokamitra.kategori_event', []),
         ]);
-    }
-
-    public function update(UpdateEventRequest $request, Event $event): RedirectResponse
-    {
-        // validated() hanya berisi field form, jadi eo_id dan status tidak bisa diubah.
-        $event->update($request->validated());
-
-        Inertia::flash('toast', [
-            'type' => 'success',
-            'message' => "Event \"{$event->nama_event}\" berhasil diperbarui.",
-        ]);
-
-        return to_route('eo.events.show', $event);
-    }
-
-    public function tutup(Request $request, Event $event): RedirectResponse
-    {
-        $this->pastikanPemilik($request, $event);
-
-        // Update atomik: hanya berhasil jika masih dipublikasikan dan sudah
-        // mencapai tanggal selesai, jadi klik ganda tidak menimpa tanggal_ditutup.
-        $berhasil = Event::query()
-            ->whereKey($event->getKey())
-            ->where('status_event', Event::STATUS_DIPUBLIKASIKAN)
-            ->update([
-                'status_event' => Event::STATUS_DITUTUP,
-                'tanggal_ditutup' => now(),
-            ]);
-
-        Inertia::flash('toast', $berhasil
-            ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" telah ditutup dan siap diarsipkan Admin."]
-            : ['type' => 'error', 'message' => 'Hanya event yang sudah terverifikasi (dipublikasikan) yang dapat ditutup.']);
-
-        return back();
     }
 
     private function pastikanPemilik(Request $request, Event $event): void

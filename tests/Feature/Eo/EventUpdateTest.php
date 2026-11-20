@@ -38,18 +38,6 @@ class EventUpdateTest extends TestCase
         ], $ubah));
     }
 
-    private function data(array $ubah = []): array
-    {
-        return array_merge([
-            'nama_event' => 'Festival Baru',
-            'kategori_event' => 'Pameran',
-            'tanggal_mulai' => now()->addDays(20)->toDateString(),
-            'tanggal_selesai' => now()->addDays(21)->toDateString(),
-            'lokasi' => 'Cilacap',
-            'deskripsi' => 'Deskripsi baru.',
-        ], $ubah);
-    }
-
     public function test_pemilik_dapat_membuka_formulir_edit(): void
     {
         [$user, $eo] = $this->eoAktif();
@@ -63,28 +51,7 @@ class EventUpdateTest extends TestCase
                 ->has('kategori'));
     }
 
-    public function test_perubahan_valid_tersimpan_dan_tampil_di_detail(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-        $event = $this->buatEvent($eo);
-
-        $this->actingAs($user)->put(route('eo.events.update', $event), $this->data())
-            ->assertRedirect(route('eo.events.show', $event));
-
-        $this->assertDatabaseHas('event', [
-            'event_id' => $event->event_id,
-            'nama_event' => 'Festival Baru',
-            'lokasi' => 'Cilacap',
-        ]);
-
-        $this->actingAs($user)->get(route('eo.events.show', $event))
-            ->assertInertia(fn (Assert $p) => $p
-                ->component('eo/events/Show')
-                ->where('event.nama', 'Festival Baru')
-                ->where('event.lokasi', 'Cilacap'));
-    }
-
-    public function test_eo_lain_tidak_bisa_mengubah_atau_melihat(): void
+    public function test_eo_lain_tidak_bisa_mengubah_atau_melihat_halaman_edit(): void
     {
         [, $eo] = $this->eoAktif();
         [$userLain] = $this->eoAktif();
@@ -92,76 +59,14 @@ class EventUpdateTest extends TestCase
 
         $this->actingAs($userLain)->get(route('eo.events.edit', $event))->assertForbidden();
         $this->actingAs($userLain)->get(route('eo.events.show', $event))->assertForbidden();
-        $this->actingAs($userLain)->put(route('eo.events.update', $event), $this->data())
-            ->assertForbidden();
-
-        $this->assertDatabaseHas('event', ['event_id' => $event->event_id, 'nama_event' => 'Festival Lama']);
     }
 
-    public function test_data_tidak_valid_ditolak_dan_data_lama_tetap(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-        $event = $this->buatEvent($eo);
-
-        $this->actingAs($user)->put(route('eo.events.update', $event), $this->data([
-            'nama_event' => '',
-            'lokasi' => '',
-            'tanggal_mulai' => now()->addDays(5)->toDateString(),
-            'tanggal_selesai' => now()->addDay()->toDateString(),
-            'kategori_event' => 'Tidak ada',
-        ]))->assertSessionHasErrors(['nama_event', 'lokasi', 'tanggal_selesai', 'kategori_event']);
-
-        $this->assertDatabaseHas('event', ['event_id' => $event->event_id, 'nama_event' => 'Festival Lama']);
-    }
-
-    public function test_status_dan_pemilik_tidak_bisa_diubah_lewat_request(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-        [, $eoLain] = $this->eoAktif();
-        $event = $this->buatEvent($eo);
-
-        $this->actingAs($user)->put(route('eo.events.update', $event), $this->data([
-            'status_event' => Event::STATUS_DIPUBLIKASIKAN,
-            'eo_id' => $eoLain->eo_id,
-        ]))->assertRedirect();
-
-        $event->refresh();
-        $this->assertSame(Event::STATUS_DRAFT, $event->status_event);
-        $this->assertSame($eo->eo_id, $event->eo_id);
-    }
-
-    public function test_event_ditutup_tidak_bisa_diubah(): void
+    public function test_event_ditutup_tidak_bisa_diedit_di_halaman_web(): void
     {
         [$user, $eo] = $this->eoAktif();
         $event = $this->buatEvent($eo, ['status_event' => Event::STATUS_DITUTUP]);
 
         $this->actingAs($user)->get(route('eo.events.edit', $event))->assertForbidden();
-        $this->actingAs($user)->put(route('eo.events.update', $event), $this->data())->assertForbidden();
-    }
-
-    public function test_tanggal_mulai_lama_yang_sudah_lewat_boleh_dipertahankan(): void
-    {
-        [$user, $eo] = $this->eoAktif();
-        $lalu = now()->subDays(3)->toDateString();
-        $event = $this->buatEvent($eo, [
-            'tanggal_mulai' => $lalu,
-            'tanggal_selesai' => now()->addDay()->toDateString(),
-        ]);
-
-        $this->actingAs($user)->put(route('eo.events.update', $event), $this->data([
-            'tanggal_mulai' => $lalu,
-            'tanggal_selesai' => now()->addDay()->toDateString(),
-        ]))->assertSessionHasNoErrors();
-    }
-
-    public function test_role_lain_ditolak(): void
-    {
-        [, $eo] = $this->eoAktif();
-        $event = $this->buatEvent($eo);
-        $vendor = User::factory()->vendor()->create();
-
-        $this->actingAs($vendor)->put(route('eo.events.update', $event), $this->data())
-            ->assertForbidden();
     }
 
     public function test_tamu_diarahkan_ke_login(): void
@@ -169,7 +74,7 @@ class EventUpdateTest extends TestCase
         [, $eo] = $this->eoAktif();
         $event = $this->buatEvent($eo);
 
-        $this->put(route('eo.events.update', $event), $this->data())
+        $this->get(route('eo.events.edit', $event))
             ->assertRedirect(route('login'));
         $this->get(route('eo.events.show', $event))
             ->assertRedirect(route('login'));

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Api\V1\Admin\PengajuanController as AdminPengajuanController;
 use App\Http\Controllers\Api\V1\Auth\ForgotPasswordController;
 use App\Http\Controllers\Api\V1\Auth\LoginController;
@@ -7,6 +8,10 @@ use App\Http\Controllers\Api\V1\Auth\LogoutController;
 use App\Http\Controllers\Api\V1\Auth\RegisterController;
 use App\Http\Controllers\Api\V1\Auth\ResetPasswordController;
 use App\Http\Controllers\Api\V1\CsrfTokenController;
+use App\Http\Controllers\Api\V1\Eo\EventController as EoEventController;
+use App\Http\Controllers\Api\V1\Eo\EventOptionController;
+use App\Http\Controllers\Api\V1\Eo\PartnershipRequestController;
+use App\Http\Controllers\Api\V1\Eo\StakeholderController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\RoleProfileController;
@@ -23,11 +28,9 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::prefix('v1')->middleware('web')->group(function () {
-    // Token CSRF untuk klien fetch; tidak perlu login agar sesi baru tetap dapat token.
     Route::get('/csrf-token', CsrfTokenController::class)
         ->name('api.v1.csrf-token');
 
-    // Login dan logout memakai pipeline serta guard dari Laravel Fortify.
     Route::post('/login', [LoginController::class, 'store'])
         ->middleware(['guest:web', 'throttle:login'])
         ->name('api.v1.login');
@@ -40,7 +43,6 @@ Route::prefix('v1')->middleware('web')->group(function () {
         ->middleware('guest:web')
         ->name('api.v1.register');
 
-    // Lupa dan reset kata sandi memakai broker serta action bawaan Fortify.
     Route::post('/forgot-password', [ForgotPasswordController::class, 'store'])
         ->middleware('guest:web')
         ->name('api.v1.forgot-password');
@@ -78,7 +80,40 @@ Route::prefix('v1')->middleware('web')->group(function () {
                 ->name('api.v1.role-profile.dokumen.download');
         });
 
-        // Verifikasi pendaftaran hanya untuk Admin. File dokumen tetap privat.
+        // Modul Event dan Kolaborasi untuk Event Organizer.
+        Route::middleware('role:eo')->prefix('eo')->name('api.v1.eo.')->group(function () {
+            Route::get('/events', [EoEventController::class, 'index'])
+                ->name('events.index');
+
+            Route::post('/events', [EoEventController::class, 'store'])
+                ->name('events.store');
+
+            Route::get('/events/{event}', [EoEventController::class, 'show'])
+                ->whereNumber('event')
+                ->name('events.show');
+
+            Route::put('/events/{event}', [EoEventController::class, 'update'])
+                ->whereNumber('event')
+                ->name('events.update');
+
+            Route::post('/events/{event}/tutup', [EoEventController::class, 'close'])
+                ->whereNumber('event')
+                ->name('events.close');
+
+            Route::get('/stakeholders', [StakeholderController::class, 'index'])
+                ->name('stakeholders.index');
+
+            Route::get('/stakeholders/{type}/{user}', [StakeholderController::class, 'show'])
+                ->name('stakeholders.show');
+
+            Route::get('/events/options', [EventOptionController::class, 'index'])
+                ->name('events.options');
+
+            Route::post('/partnership-requests', [PartnershipRequestController::class, 'store'])
+                ->name('partnership-requests.store');
+        });
+
+        // Modul Admin.
         Route::middleware('role:admin')->group(function () {
             Route::prefix('admin/pengajuan')
                 ->name('api.v1.admin.pengajuan.')
@@ -116,6 +151,24 @@ Route::prefix('v1')->middleware('web')->group(function () {
                         ->whereNumber('pengajuan')
                         ->whereNumber('dokumen')
                         ->name('documents.download');
+                });
+
+            Route::prefix('admin/events')
+                ->name('api.v1.admin.events.')
+                ->group(function () {
+                    Route::get('/', [AdminEventController::class, 'index'])
+                        ->name('index');
+
+                    Route::get('/arsip', [AdminEventController::class, 'archives'])
+                        ->name('archives');
+
+                    Route::post('/{event}/verifikasi', [AdminEventController::class, 'verifikasi'])
+                        ->whereNumber('event')
+                        ->name('verifikasi');
+
+                    Route::post('/{event}/arsip', [AdminEventController::class, 'archive'])
+                        ->whereNumber('event')
+                        ->name('archive');
                 });
         });
     });

@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
@@ -75,9 +74,7 @@ defineOptions({
     <div class="flex flex-col gap-4 p-4 md:p-6">
         <!-- Header -->
         <header>
-            <h1 class="text-2xl font-extrabold">
-                Direktori Stakeholder
-            </h1>
+            <h1 class="text-2xl font-extrabold">Direktori Stakeholder</h1>
             <p class="mt-1 text-sm text-neutral-600 dark:text-muted-foreground">
                 Temukan stakeholder yang sesuai dengan kebutuhan event Anda.
             </p>
@@ -107,9 +104,7 @@ defineOptions({
 
         <!-- Filter kategori -->
         <section>
-            <h2 class="mb-3 text-sm font-bold">
-                Kategori Stakeholder
-            </h2>
+            <h2 class="mb-3 text-sm font-bold">Kategori Stakeholder</h2>
 
             <div class="flex flex-wrap gap-2">
                 <button
@@ -161,11 +156,16 @@ defineOptions({
                 <div class="text-4xl">🔎</div>
                 <p class="font-semibold">Stakeholder tidak ditemukan</p>
                 <p class="text-sm text-neutral-500">
-                    Belum ada stakeholder yang sesuai dengan pencarian atau kategori ini.
+                    Belum ada stakeholder yang sesuai dengan pencarian atau
+                    kategori ini.
                 </p>
                 <button
                     type="button"
-                    @click="pilihKategori('semua'); kataKunci = ''; cariStakeholder()"
+                    @click="
+                        pilihKategori('semua');
+                        kataKunci = '';
+                        cariStakeholder();
+                    "
                     class="mt-2 text-sm font-semibold text-[#17564C] hover:underline"
                 >
                     Reset pencarian
@@ -215,10 +215,7 @@ defineOptions({
                 v-if="stakeholders.links.length > 3"
                 class="mt-5 flex flex-wrap justify-end gap-1 border-t pt-4"
             >
-                <template
-                    v-for="(link, i) in stakeholders.links"
-                    :key="i"
-                >
+                <template v-for="(link, i) in stakeholders.links" :key="i">
                     <Link
                         v-if="link.url"
                         :href="link.url"

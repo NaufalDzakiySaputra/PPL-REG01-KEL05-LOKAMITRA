@@ -2,6 +2,7 @@
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Archive, CalendarCheck, ShieldCheck } from '@lucide/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +13,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { ApiError, api } from '@/lib/api';
+import type { ApiResponse } from '@/types/api';
 
 type EventItem = {
     id: number;
@@ -44,9 +47,21 @@ const props = defineProps<{
 }>();
 
 const tab = computed(() => [
-    { kunci: 'menunggu_verifikasi', label: 'Menunggu verifikasi', jumlah: props.ringkasan.menunggu },
-    { kunci: 'dipublikasikan', label: 'Terverifikasi', jumlah: props.ringkasan.terverifikasi },
-    { kunci: 'ditutup', label: 'Siap diarsipkan', jumlah: props.ringkasan.ditutup },
+    {
+        kunci: 'menunggu_verifikasi',
+        label: 'Menunggu verifikasi',
+        jumlah: props.ringkasan.menunggu,
+    },
+    {
+        kunci: 'dipublikasikan',
+        label: 'Terverifikasi',
+        jumlah: props.ringkasan.terverifikasi,
+    },
+    {
+        kunci: 'ditutup',
+        label: 'Siap diarsipkan',
+        jumlah: props.ringkasan.ditutup,
+    },
     { kunci: 'diarsipkan', label: 'Arsip', jumlah: props.ringkasan.diarsip },
 ]);
 
@@ -61,10 +76,14 @@ type Aksi = 'verifikasi' | 'arsip';
 
 const teksAksi: Record<
     Aksi,
-    { url: string; judul: string; deskripsi: string; tombol: string; proses: string }
+    {
+        judul: string;
+        deskripsi: string;
+        tombol: string;
+        proses: string;
+    }
 > = {
     verifikasi: {
-        url: 'verifikasi',
         judul: 'Verifikasi event ini?',
         deskripsi:
             'Pastikan data event sudah diperiksa. Setelah diverifikasi, event langsung tampil di daftar publik.',
@@ -72,7 +91,6 @@ const teksAksi: Record<
         proses: 'Memverifikasi...',
     },
     arsip: {
-        url: 'arsipkan',
         judul: 'Arsipkan event ini?',
         deskripsi:
             'Event dipindahkan ke tab Arsip dan tidak tampil sebagai event aktif. Datanya tetap tersimpan untuk ditinjau kembali.',
@@ -100,23 +118,52 @@ function ubahDialog(buka: boolean): void {
     dialogBuka.value = buka;
 }
 
-function konfirmasi(): void {
+async function konfirmasi(): Promise<void> {
     if (!dipilih.value) {
         return;
     }
 
-    router.post(
-        `/admin/events/${dipilih.value.id}/${teksAksi[aksi.value].url}`,
-        {},
-        {
-            preserveScroll: true,
-            onStart: () => (memproses.value = true),
-            onFinish: () => {
-                memproses.value = false;
-                dialogBuka.value = false;
-            },
-        },
-    );
+    if (aksi.value === 'verifikasi') {
+        memproses.value = true;
+        try {
+            const response = await api.post<ApiResponse<unknown>>(
+                `/api/v1/admin/events/${dipilih.value.id}/verifikasi`,
+            );
+            toast.success(response.message ?? 'Event berhasil diverifikasi.');
+            dialogBuka.value = false;
+            router.reload();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                toast.error(error.message);
+            } else {
+                toast.error('Gagal memverifikasi event.');
+            }
+        } finally {
+            memproses.value = false;
+        }
+        return;
+    }
+
+    if (aksi.value === 'arsip') {
+        memproses.value = true;
+        try {
+            const response = await api.post<ApiResponse<unknown>>(
+                `/api/v1/admin/events/${dipilih.value.id}/arsip`,
+            );
+            toast.success(response.message ?? 'Event berhasil diarsipkan.');
+            dialogBuka.value = false;
+            router.reload();
+        } catch (error) {
+            if (error instanceof ApiError) {
+                toast.error(error.message);
+            } else {
+                toast.error('Gagal mengarsipkan event.');
+            }
+        } finally {
+            memproses.value = false;
+        }
+        return;
+    }
 }
 
 function keterangan(e: EventItem): string {
@@ -192,7 +239,9 @@ defineOptions({
                     data-test="baris-event"
                 >
                     <div class="min-w-0">
-                        <p class="truncate text-sm font-semibold">{{ e.nama }}</p>
+                        <p class="truncate text-sm font-semibold">
+                            {{ e.nama }}
+                        </p>
                         <p class="text-xs text-neutral-500">
                             {{
                                 [e.eo, e.periode, e.lokasi, e.kategori]
@@ -200,7 +249,9 @@ defineOptions({
                                     .join(' · ')
                             }}
                         </p>
-                        <p class="text-xs text-neutral-400">{{ keterangan(e) }}</p>
+                        <p class="text-xs text-neutral-400">
+                            {{ keterangan(e) }}
+                        </p>
                     </div>
 
                     <button
@@ -246,7 +297,11 @@ defineOptions({
                         :href="link.url"
                         preserve-scroll
                         class="rounded-md border px-3 py-1.5 text-xs"
-                        :class="link.active ? 'bg-[#17564C] text-white' : 'hover:bg-muted'"
+                        :class="
+                            link.active
+                                ? 'bg-[#17564C] text-white'
+                                : 'hover:bg-muted'
+                        "
                     >
                         {{ labelHalaman(link.label) }}
                     </Link>
@@ -262,11 +317,16 @@ defineOptions({
 
         <Dialog :open="dialogBuka" @update:open="ubahDialog">
             <DialogContent class="sm:max-w-md">
-                <DialogHeader class="items-center text-center sm:items-start sm:text-left">
+                <DialogHeader
+                    class="items-center text-center sm:items-start sm:text-left"
+                >
                     <div
                         class="mb-2 flex size-12 items-center justify-center rounded-full bg-[#17564C]/10 text-[#17564C]"
                     >
-                        <ShieldCheck v-if="aksi === 'verifikasi'" class="size-6" />
+                        <ShieldCheck
+                            v-if="aksi === 'verifikasi'"
+                            class="size-6"
+                        />
                         <Archive v-else class="size-6" />
                     </div>
                     <DialogTitle>{{ teksAksi[aksi].judul }}</DialogTitle>
@@ -309,7 +369,11 @@ defineOptions({
                         data-test="konfirmasi-aksi"
                         @click="konfirmasi"
                     >
-                        {{ memproses ? teksAksi[aksi].proses : teksAksi[aksi].tombol }}
+                        {{
+                            memproses
+                                ? teksAksi[aksi].proses
+                                : teksAksi[aksi].tombol
+                        }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

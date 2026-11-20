@@ -85,28 +85,6 @@ class EventController extends Controller
 
         return back();
     }
-    
-    public function verifikasi(Request $request, Event $event):  RedirectResponse
-    {
-        $admin = $request->user()->admin;
-
-        abort_if($admin === null, 403, 'Profil Admin tidak ditemukan.');
-
-        $berhasil = Event::query()
-            ->whereKey($event->getKey())
-            ->where('status_event', Event::STATUS_MENUNGGU_VERIFIKASI)
-            ->update([
-                'status_event' => Event::STATUS_DIPUBLIKASIKAN,
-                'diverifikasi_oleh' => $admin->admin_id,
-                'tanggal_diverifikasi' => now(),
-            ]);
-
-         Inertia::flash('toast', $berhasil
-            ? ['type' => 'success', 'message' => "Event \"{$event->nama_event}\" berhasil diverifikasi dan kini tampil di daftar publik."]
-            : ['type' => 'error', 'message' => 'Event ini tidak sedang menunggu verifikasi.']);
-
-        return back();
-    }
 
     private function periode(Event $event): string
     {

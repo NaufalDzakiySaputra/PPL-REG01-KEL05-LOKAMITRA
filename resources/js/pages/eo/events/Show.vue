@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { TriangleAlert } from '@lucide/vue';
+import { toast } from 'vue-sonner';
 import { computed, ref } from 'vue';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import { Button } from '@/components/ui/button';
@@ -12,6 +13,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { api, ApiError } from '@/lib/api';
 
 const props = defineProps<{
     event: {
@@ -41,6 +43,9 @@ const labelStatus: Record<string, string> = {
 
 const dialogBuka = ref(false);
 const memproses = ref(false);
+const dapatDitutup = ref(props.event.dapat_ditutup);
+const siapDiarsipkan = ref(props.event.siap_diarsipkan);
+const tanggalDitutup = ref(props.event.tanggal_ditutup);
 
 function ubahDialog(buka: boolean): void {
     if (memproses.value) {
@@ -50,19 +55,29 @@ function ubahDialog(buka: boolean): void {
     dialogBuka.value = buka;
 }
 
-function tutupEvent(): void {
-    router.post(
-        `/eo/events/${props.event.id}/tutup`,
-        {},
-        {
-            preserveScroll: true,
-            onStart: () => (memproses.value = true),
-            onFinish: () => {
-                memproses.value = false;
-                dialogBuka.value = false;
-            },
-        },
-    );
+async function tutupEvent(): Promise<void> {
+    memproses.value = true;
+
+    try {
+        const result = await api.post<{ message: string; data: { tanggal_ditutup: string | null } }>(
+            `/api/v1/eo/events/${props.event.id}/tutup`,
+        );
+
+        dapatDitutup.value = false;
+        siapDiarsipkan.value = true;
+        tanggalDitutup.value = result.data.tanggal_ditutup;
+        dialogBuka.value = false;
+
+        toast.success(result.message ?? 'Event berhasil ditutup.');
+    } catch (err) {
+        if (err instanceof ApiError) {
+            toast.error(err.message ?? 'Gagal menutup event.');
+        } else {
+            toast.error('Terjadi kesalahan. Silakan coba lagi.');
+        }
+    } finally {
+        memproses.value = false;
+    }
 }
 
 defineOptions({
@@ -78,7 +93,6 @@ const hariIni = new Date(Date.now() - new Date().getTimezoneOffset() * 60000)
     .toISOString()
     .slice(0, 10);
 
-// Peringatan tambahan di modal kalau event belum melewati tanggal selesainya.
 const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
 </script>
 
@@ -105,7 +119,7 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                     Ubah informasi
                 </Link>
                 <Button
-                    v-if="event.dapat_ditutup"
+                    v-if="dapatDitutup"
                     type="button"
                     variant="destructive"
                     data-test="tutup-event"
@@ -117,14 +131,13 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
         </header>
 
         <div
-            v-if="event.siap_diarsipkan"
+            v-if="siapDiarsipkan"
             class="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900"
             data-test="banner-ditutup"
         >
-            Event ditutup pada {{ event.tanggal_ditutup }}. Event ini siap
+            Event ditutup pada {{ tanggalDitutup }}. Event ini siap
             diarsipkan oleh Admin.
         </div>
-        
 
         <DashCard judul="Informasi event">
             <dl class="grid gap-4 sm:grid-cols-2">
@@ -134,11 +147,15 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Lokasi</dt>
-                    <dd class="text-sm font-medium">{{ event.lokasi ?? '-' }}</dd>
+                    <dd class="text-sm font-medium">
+                        {{ event.lokasi ?? '-' }}
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Kategori</dt>
-                    <dd class="text-sm font-medium">{{ event.kategori ?? '-' }}</dd>
+                    <dd class="text-sm font-medium">
+                        {{ event.kategori ?? '-' }}
+                    </dd>
                 </div>
                 <div>
                     <dt class="text-xs text-neutral-500">Status</dt>
@@ -148,7 +165,7 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                 </div>
                 <div class="sm:col-span-2">
                     <dt class="text-xs text-neutral-500">Deskripsi</dt>
-                    <dd class="whitespace-pre-line text-sm">
+                    <dd class="text-sm whitespace-pre-line">
                         {{ event.deskripsi || '-' }}
                     </dd>
                 </div>
@@ -157,7 +174,9 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
 
         <Dialog :open="dialogBuka" @update:open="ubahDialog">
             <DialogContent class="sm:max-w-md">
-                <DialogHeader class="items-center text-center sm:items-start sm:text-left">
+                <DialogHeader
+                    class="items-center text-center sm:items-start sm:text-left"
+                >
                     <div
                         class="mb-2 flex size-12 items-center justify-center rounded-full bg-amber-100 text-amber-700"
                     >
@@ -177,8 +196,8 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                     class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900"
                     data-test="peringatan-belum-selesai"
                 >
-                    Tanggal selesai event ini ({{ event.periode }}) belum terlewati. Tutup
-                    hanya jika event memang sudah berakhir.
+                    Tanggal selesai event ini ({{ event.periode }}) belum
+                    terlewati. Tutup hanya jika event memang sudah berakhir.
                 </div>
 
                 <DialogFooter class="gap-2">
