@@ -136,6 +136,7 @@ class PengunjungDashboardService
             ->map(fn (DokumenEvent $d) => [
                 'id' => $d->dokumen_event_id,
                 'nama' => $d->nama_dokumen,
+                'jenis' => $d->jenis ?? DokumenEvent::JENIS_DOKUMEN,
                 'unduh_url' => route('events.dokumen', [$e->event_id, $d->dokumen_event_id], false),
             ])
             ->all();

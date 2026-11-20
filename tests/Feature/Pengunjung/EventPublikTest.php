@@ -170,7 +170,7 @@ class EventPublikTest extends TestCase
     public function test_dokumen_publik_bisa_diunduh_tanpa_login(): void
     {
         $event = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
-        Storage::disk('public')->put('dokumen-event/denah-uji.pdf', 'isi pdf uji');
+        Storage::disk('local')->put('dokumen-event/denah-uji.pdf', 'isi pdf uji');
 
         $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $event->eo_id))->firstOrFail();
         $dokumen = DokumenEvent::create([
@@ -184,14 +184,14 @@ class EventPublikTest extends TestCase
         $this->get(route('events.dokumen', [$event->event_id, $dokumen->dokumen_event_id]))
             ->assertOk();
 
-        Storage::disk('public')->delete('dokumen-event/denah-uji.pdf');
+        Storage::disk('local')->delete('dokumen-event/denah-uji.pdf');
     }
 
     public function test_dokumen_dari_event_lain_mengembalikan_404(): void
     {
         $eventA = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
         $eventB = $this->buatEvent(Event::STATUS_DIPUBLIKASIKAN);
-        Storage::disk('public')->put('dokumen-event/rahasia.pdf', 'isi');
+        Storage::disk('local')->put('dokumen-event/rahasia.pdf', 'isi');
 
         $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $eventA->eo_id))->firstOrFail();
         $dokumen = DokumenEvent::create([
@@ -206,13 +206,13 @@ class EventPublikTest extends TestCase
         $this->get(route('events.dokumen', [$eventB->event_id, $dokumen->dokumen_event_id]))
             ->assertNotFound();
 
-        Storage::disk('public')->delete('dokumen-event/rahasia.pdf');
+        Storage::disk('local')->delete('dokumen-event/rahasia.pdf');
     }
 
     public function test_dokumen_event_non_publik_mengembalikan_404(): void
     {
         $event = $this->buatEvent(Event::STATUS_DRAFT);
-        Storage::disk('public')->put('dokumen-event/draft.pdf', 'isi');
+        Storage::disk('local')->put('dokumen-event/draft.pdf', 'isi');
 
         $akun = User::whereHas('eo', fn ($q) => $q->where('eo_id', $event->eo_id))->firstOrFail();
         $dokumen = DokumenEvent::create([
@@ -226,6 +226,6 @@ class EventPublikTest extends TestCase
         $this->get(route('events.dokumen', [$event->event_id, $dokumen->dokumen_event_id]))
             ->assertNotFound();
 
-        Storage::disk('public')->delete('dokumen-event/draft.pdf');
+        Storage::disk('local')->delete('dokumen-event/draft.pdf');
     }
 }

@@ -224,6 +224,16 @@ TEKS],
 
         $hariEvent = $event->tanggal_mulai->format('Y-m-d');
 
+        if (blank($event->informasi_regulasi)) {
+            $event->update([
+                'informasi_regulasi' => implode("\n", [
+                    'Tiket hanya berlaku untuk satu orang dan satu kali masuk.',
+                    'Pengunjung wajib menjaga kebersihan serta tidak membawa benda tajam.',
+                    'Anak di bawah 12 tahun harus didampingi orang tua atau wali.',
+                ]),
+            ]);
+        }
+
         $rundown = [
             ['Pembukaan dan sambutan panitia', 'Penyambutan pengunjung serta sambutan perwakilan pemerintah daerah.', $hariEvent.' 08:00:00', $hariEvent.' 09:00:00'],
             ['Pertunjukan seni tradisional', 'Slawat kreasi, ebeg, dan angguk dari sanggar seni se-Banyumas.', $hariEvent.' 09:00:00', $hariEvent.' 11:30:00'],
@@ -249,20 +259,22 @@ TEKS],
         );
 
         // Dokumen dummy supaya tombol unduh bisa dicoba saat demo.
+        // Disimpan di disk privat dan hanya diambil lewat route events.dokumen.
         $dokumen = [
-            ['Denah Venue Festival.pdf', 'dokumen-event/denah-venue-festival.pdf'],
-            ['Panduan Peserta.pdf', 'dokumen-event/panduan-peserta.pdf'],
+            ['Denah Venue Festival.pdf', 'dokumen-event/denah-venue-festival.pdf', DokumenEvent::JENIS_LAYOUT],
+            ['Panduan Peserta.pdf', 'dokumen-event/panduan-peserta.pdf', DokumenEvent::JENIS_DOKUMEN],
         ];
 
-        foreach ($dokumen as [$nama, $lokasi]) {
-            if (! Storage::disk('public')->exists($lokasi)) {
-                Storage::disk('public')->put($lokasi, $this->pdfDummy($nama));
+        foreach ($dokumen as [$nama, $lokasi, $jenis]) {
+            if (! Storage::disk('local')->exists($lokasi)) {
+                Storage::disk('local')->put($lokasi, $this->pdfDummy($nama));
             }
 
             DokumenEvent::updateOrCreate(
                 ['event_id' => $event->event_id, 'nama_dokumen' => $nama],
                 [
                     'pengunggah_akun_id' => $eo->akun_id,
+                    'jenis' => $jenis,
                     'lokasi_file' => $lokasi,
                     'tanggal_upload' => now(),
                 ]

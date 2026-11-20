@@ -35,6 +35,7 @@ class EventPublikController extends Controller
     }
 
     // Unduh dokumen/layout milik event yang masih dipublikasikan.
+    // Berkas disimpan di disk privat, jadi hanya bisa diambil lewat route ini.
     public function unduhDokumen(Event $event, DokumenEvent $dokumen): StreamedResponse
     {
         abort_unless($dokumen->event_id === $event->event_id, 404);
@@ -43,9 +44,9 @@ class EventPublikController extends Controller
                 && $event->tanggal_selesai->endOfDay()->isFuture(),
             404,
         );
-        abort_unless(Storage::disk('public')->exists($dokumen->lokasi_file), 404);
+        abort_unless(Storage::disk('local')->exists($dokumen->lokasi_file), 404);
 
-        return Storage::disk('public')->download(
+        return Storage::disk('local')->download(
             $dokumen->lokasi_file,
             $dokumen->nama_dokumen,
         );

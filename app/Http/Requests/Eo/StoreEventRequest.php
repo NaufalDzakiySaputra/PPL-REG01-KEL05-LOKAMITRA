@@ -24,6 +24,7 @@ class StoreEventRequest extends FormRequest
             'tanggal_selesai' => ['required', 'date', 'after_or_equal:tanggal_mulai'],
             'lokasi' => ['required', 'string', 'max:255'],
             'deskripsi' => ['nullable', 'string', 'max:50000'],
+            'informasi_regulasi' => ['nullable', 'string', 'max:50000'],
         ];
     }
 
@@ -36,6 +37,7 @@ class StoreEventRequest extends FormRequest
             'tanggal_selesai' => 'Tanggal Selesai',
             'lokasi' => 'Lokasi',
             'deskripsi' => 'Deskripsi',
+            'informasi_regulasi' => 'Informasi & Regulasi',
         ];
     }
 
