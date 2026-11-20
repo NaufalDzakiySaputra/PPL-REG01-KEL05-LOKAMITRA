@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Eo\StoreDokumenEventRequest;
 use App\Http\Requests\Eo\StoreKontakDaruratRequest;
 use App\Http\Requests\Eo\StoreRundownRequest;
+use App\Http\Requests\Eo\UpdateDokumenEventRequest;
+use App\Http\Requests\Eo\UpdateInformasiRegulasiRequest;
 use App\Http\Requests\Eo\UpdateKontakDaruratRequest;
 use App\Http\Resources\DokumenEventResource;
 use App\Http\Resources\KontakDaruratResource;
@@ -19,8 +21,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Pengelolaan informasi publik event (PBI-035): rundown, layout/dokumen,
- * dan kontak darurat yang nanti tampil di halaman detail pengunjung.
+ * Pengelolaan informasi publik event (PBI-035, PBI-036): rundown,
+ * layout/dokumen, regulasi, dan kontak darurat yang nanti tampil di halaman
+ * detail pengunjung.
  *
  * Semua aksi hanya untuk EO pemilik dan selama event masih dapat diubah.
  */
@@ -48,6 +51,22 @@ class InformasiPublikEventController extends Controller
         ]);
     }
 
+    // Memperbarui informasi & regulasi tanpa memaksa EO mengirim ulang seluruh
+    // data event (PBI-036).
+    public function updateRegulasi(UpdateInformasiRegulasiRequest $request, Event $event): JsonResponse
+    {
+        $event->update([
+            'informasi_regulasi' => $request->validated('informasi_regulasi'),
+        ]);
+
+        return response()->json([
+            'message' => 'Informasi & regulasi berhasil diperbarui.',
+            'data' => [
+                'informasi_regulasi' => $event->informasi_regulasi,
+            ],
+        ]);
+    }
+
     public function storeRundown(StoreRundownRequest $request, Event $event): JsonResponse
     {
         $timeline = $event->timeline()->create($request->validated());
@@ -63,6 +82,8 @@ class InformasiPublikEventController extends Controller
         Event $event,
         Timeline $rundown,
     ): JsonResponse {
+        $this->pastikanPemilik($request, $event);
+        $this->pastikanDapatDiubah($event);
         $this->pastikanMilikEvent($event, $rundown);
 
         $rundown->update($request->validated());
@@ -103,6 +124,39 @@ class InformasiPublikEventController extends Controller
         ], 201);
     }
 
+    // Memperbarui nama/jenis dokumen dan/atau mengganti berkasnya (PBI-036).
+    // Berkas lama dihapus agar disk tidak menyimpan file yatim.
+    public function updateDokumen(
+        UpdateDokumenEventRequest $request,
+        Event $event,
+        DokumenEvent $dokumen,
+    ): JsonResponse {
+        $this->pastikanPemilik($request, $event);
+        $this->pastikanDapatDiubah($event);
+        abort_unless($dokumen->event_id === $event->event_id, 404);
+
+        $perubahan = [
+            'nama_dokumen' => $request->validated('nama_dokumen'),
+            'jenis' => $request->validated('jenis'),
+        ];
+
+        if ($request->hasFile('file')) {
+            $lokasi = $request->file('file')->store("dokumen-event/{$event->event_id}", 'local');
+
+            Storage::disk('local')->delete($dokumen->lokasi_file);
+
+            $perubahan['lokasi_file'] = $lokasi;
+            $perubahan['tanggal_upload'] = now();
+        }
+
+        $dokumen->update($perubahan);
+
+        return response()->json([
+            'message' => 'Dokumen berhasil diperbarui.',
+            'data' => new DokumenEventResource($dokumen->refresh()),
+        ]);
+    }
+
     public function destroyDokumen(Request $request, Event $event, DokumenEvent $dokumen): JsonResponse
     {
         $this->pastikanPemilik($request, $event);
@@ -130,6 +184,8 @@ class InformasiPublikEventController extends Controller
         Event $event,
         KontakDaruratEvent $kontak,
     ): JsonResponse {
+        $this->pastikanPemilik($request, $event);
+        $this->pastikanDapatDiubah($event);
         abort_unless($kontak->event_id === $event->event_id, 404);
 
         $kontak->update($request->validated());
