@@ -254,36 +254,46 @@ defineOptions({
                         </p>
                     </div>
 
-                    <button
-                        v-if="e.status === 'menunggu_verifikasi'"
-                        type="button"
-                        class="shrink-0 rounded-lg bg-[#17564C] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-                        data-test="verifikasi-event"
-                        @click="bukaDialog('verifikasi', e)"
-                    >
-                        Verifikasi
-                    </button>
-                    <button
-                        v-else-if="e.status === 'ditutup'"
-                        type="button"
-                        class="shrink-0 rounded-lg bg-[#17564C] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
-                        data-test="arsipkan-event"
-                        @click="bukaDialog('arsip', e)"
-                    >
-                        Arsipkan
-                    </button>
-                    <span
-                        v-else-if="e.status === 'diarsipkan'"
-                        class="shrink-0 rounded-full bg-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-700"
-                    >
-                        Diarsipkan
-                    </span>
-                    <span
-                        v-else
-                        class="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"
-                    >
-                        Terverifikasi
-                    </span>
+                    <div class="flex shrink-0 flex-wrap items-center gap-2">
+                        <Link
+                            :href="`/admin/events/${e.id}`"
+                            class="rounded-lg border px-3 py-2 text-sm font-semibold hover:bg-muted"
+                            data-test="periksa-event"
+                        >
+                            Periksa
+                        </Link>
+
+                        <button
+                            v-if="e.status === 'menunggu_verifikasi'"
+                            type="button"
+                            class="shrink-0 rounded-lg bg-[#17564C] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                            data-test="verifikasi-event"
+                            @click="bukaDialog('verifikasi', e)"
+                        >
+                            Verifikasi
+                        </button>
+                        <button
+                            v-else-if="e.status === 'ditutup'"
+                            type="button"
+                            class="shrink-0 rounded-lg bg-[#17564C] px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+                            data-test="arsipkan-event"
+                            @click="bukaDialog('arsip', e)"
+                        >
+                            Arsipkan
+                        </button>
+                        <span
+                            v-else-if="e.status === 'diarsipkan'"
+                            class="shrink-0 rounded-full bg-neutral-200 px-3 py-1 text-xs font-semibold text-neutral-700"
+                        >
+                            Diarsipkan
+                        </span>
+                        <span
+                            v-else
+                            class="shrink-0 rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold text-emerald-800"
+                        >
+                            Terverifikasi
+                        </span>
+                    </div>
                 </li>
             </ul>
 
