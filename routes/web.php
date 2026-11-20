@@ -18,6 +18,7 @@ use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardCo
 use App\Http\Controllers\Pengunjung\EventPublikController;
 use App\Http\Controllers\Settings\RoleProfileController;
 use App\Http\Controllers\Vendor\DashboardController as VendorDashboardController;
+use App\Http\Controllers\Vendor\EventController as VendorEventController;
 use App\Http\Middleware\PreventBackHistory;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Http\Controllers\AuthenticatedSessionController as FortifyAuthenticatedSessionController;
@@ -130,6 +131,17 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/vendor/dashboard', VendorDashboardController::class)
         ->middleware('role:vendor')
         ->name('vendor.dashboard');
+
+    // Informasi event publik untuk Vendor/UMKM (F-06 / PBI-039):
+    // hanya event yang sudah dipublikasikan dan belum berakhir.
+    Route::prefix('vendor')->name('vendor.')->middleware('role:vendor')->group(function () {
+        Route::get('/events', [VendorEventController::class, 'index'])
+            ->name('events.index');
+
+        Route::get('/events/{event}', [VendorEventController::class, 'show'])
+            ->whereNumber('event')
+            ->name('events.show');
+    });
 
     Route::get('/pemda/dashboard', PemdaDashboardController::class)
         ->middleware('role:pemda')
