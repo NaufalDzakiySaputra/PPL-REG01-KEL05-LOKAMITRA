@@ -113,6 +113,35 @@ const berkasDokumen = ref<File | null>(null);
 
 const formKontak = reactive({ nama: '', nomor_telepon: '' });
 
+// ---- Pembaruan informasi publik (PBI-036) ----
+type ModeEdit =
+    | { bagian: 'rundown'; id: number }
+    | { bagian: 'dokumen'; id: number }
+    | { bagian: 'kontak'; id: number }
+    | { bagian: 'regulasi' }
+    | null;
+
+const modeEdit = ref<ModeEdit>(null);
+const galatUbah = ref<Record<string, string>>({});
+const memprosesUbah = ref(false);
+const berkasDokumenUbah = ref<File | null>(null);
+
+const formUbahRundown = reactive({
+    judul_aktivitas: '',
+    deskripsi: '',
+    waktu_mulai: '',
+    waktu_selesai: '',
+});
+
+const formUbahDokumen = reactive({
+    nama_dokumen: '',
+    jenis: 'dokumen' as 'layout' | 'dokumen',
+});
+
+const formUbahKontak = reactive({ nama: '', nomor_telepon: '' });
+
+const formUbahRegulasi = reactive({ informasi_regulasi: '' });
+
 const kuotaKontakPenuh = computed(
     () => informasi.kontak_darurat.length >= informasi.batas_kontak_darurat,
 );
@@ -312,6 +341,185 @@ async function hapusKontak(id: number): Promise<void> {
     }
 }
 
+function pesanGalatUbah(error: unknown, bawaan: string): string {
+    if (error instanceof ApiError) {
+        galatUbah.value = error.fieldErrors;
+
+        return error.message || bawaan;
+    }
+
+    return bawaan;
+}
+
+function batalUbah(): void {
+    modeEdit.value = null;
+    galatUbah.value = {};
+    berkasDokumenUbah.value = null;
+}
+
+function pilihBerkasUbah(peristiwa: Event): void {
+    const masukan = peristiwa.target as HTMLInputElement;
+    berkasDokumenUbah.value = masukan.files?.[0] ?? null;
+}
+
+function mulaiUbahRundown(butir: ButirRundown): void {
+    galatUbah.value = {};
+    formUbahRundown.judul_aktivitas = butir.judul;
+    formUbahRundown.deskripsi = butir.deskripsi ?? '';
+    formUbahRundown.waktu_mulai = keInputWaktu(butir.waktu_mulai);
+    formUbahRundown.waktu_selesai = keInputWaktu(butir.waktu_selesai);
+    modeEdit.value = { bagian: 'rundown', id: butir.id };
+}
+
+function mulaiUbahDokumen(dok: ButirDokumen): void {
+    galatUbah.value = {};
+    berkasDokumenUbah.value = null;
+    formUbahDokumen.nama_dokumen = dok.nama;
+    formUbahDokumen.jenis = dok.jenis;
+    modeEdit.value = { bagian: 'dokumen', id: dok.id };
+}
+
+function mulaiUbahKontak(kontak: ButirKontak): void {
+    galatUbah.value = {};
+    formUbahKontak.nama = kontak.nama;
+    formUbahKontak.nomor_telepon = kontak.nomor_telepon;
+    modeEdit.value = { bagian: 'kontak', id: kontak.id };
+}
+
+function mulaiUbahRegulasi(): void {
+    galatUbah.value = {};
+    formUbahRegulasi.informasi_regulasi = informasi.informasi_regulasi ?? '';
+    modeEdit.value = { bagian: 'regulasi' };
+}
+
+async function simpanUbahRundown(): Promise<void> {
+    if (modeEdit.value?.bagian !== 'rundown') {
+        return;
+    }
+
+    const id = modeEdit.value.id;
+    memprosesUbah.value = true;
+    galatUbah.value = {};
+
+    try {
+        const hasil = await api.put<{ message: string; data: ButirRundown }>(
+            `${alamatEvent}/rundown/${id}`,
+            {
+                judul_aktivitas: formUbahRundown.judul_aktivitas,
+                deskripsi: formUbahRundown.deskripsi || null,
+                waktu_mulai: formUbahRundown.waktu_mulai,
+                waktu_selesai: formUbahRundown.waktu_selesai || null,
+            },
+        );
+
+        informasi.rundown = informasi.rundown
+            .map((b) => (b.id === id ? hasil.data : b))
+            .sort((a, b) =>
+                (a.waktu_mulai ?? '').localeCompare(b.waktu_mulai ?? ''),
+            );
+
+        toast.success(hasil.message);
+        batalUbah();
+    } catch (error) {
+        toast.error(pesanGalatUbah(error, 'Gagal memperbarui rundown.'));
+    } finally {
+        memprosesUbah.value = false;
+    }
+}
+
+async function simpanUbahDokumen(): Promise<void> {
+    if (modeEdit.value?.bagian !== 'dokumen') {
+        return;
+    }
+
+    const id = modeEdit.value.id;
+    memprosesUbah.value = true;
+    galatUbah.value = {};
+
+    try {
+        const data = new FormData();
+        // PHP hanya mem-parse multipart pada POST, jadi PUT memakai method
+        // spoofing agar berkas pengganti tetap terbaca Laravel.
+        data.append('_method', 'PUT');
+        data.append('nama_dokumen', formUbahDokumen.nama_dokumen);
+        data.append('jenis', formUbahDokumen.jenis);
+
+        if (berkasDokumenUbah.value) {
+            data.append('file', berkasDokumenUbah.value);
+        }
+
+        const hasil = await api.post<{ message: string; data: ButirDokumen }>(
+            `${alamatEvent}/dokumen/${id}`,
+            data,
+        );
+
+        informasi.dokumen = informasi.dokumen
+            .map((d) => (d.id === id ? hasil.data : d))
+            .sort((a, b) => a.nama.localeCompare(b.nama));
+
+        toast.success(hasil.message);
+        batalUbah();
+    } catch (error) {
+        toast.error(pesanGalatUbah(error, 'Gagal memperbarui dokumen.'));
+    } finally {
+        memprosesUbah.value = false;
+    }
+}
+
+async function simpanUbahKontak(): Promise<void> {
+    if (modeEdit.value?.bagian !== 'kontak') {
+        return;
+    }
+
+    const id = modeEdit.value.id;
+    memprosesUbah.value = true;
+    galatUbah.value = {};
+
+    try {
+        const hasil = await api.put<{ message: string; data: ButirKontak }>(
+            `${alamatEvent}/kontak-darurat/${id}`,
+            {
+                nama: formUbahKontak.nama,
+                nomor_telepon: formUbahKontak.nomor_telepon,
+            },
+        );
+
+        informasi.kontak_darurat = informasi.kontak_darurat.map((k) =>
+            k.id === id ? hasil.data : k,
+        );
+
+        toast.success(hasil.message);
+        batalUbah();
+    } catch (error) {
+        toast.error(pesanGalatUbah(error, 'Gagal memperbarui kontak darurat.'));
+    } finally {
+        memprosesUbah.value = false;
+    }
+}
+
+async function simpanUbahRegulasi(): Promise<void> {
+    memprosesUbah.value = true;
+    galatUbah.value = {};
+
+    try {
+        const hasil = await api.put<{
+            message: string;
+            data: { informasi_regulasi: string | null };
+        }>(`${alamatEvent}/informasi-regulasi`, {
+            informasi_regulasi: formUbahRegulasi.informasi_regulasi || null,
+        });
+
+        informasi.informasi_regulasi = hasil.data.informasi_regulasi;
+
+        toast.success(hasil.message);
+        batalUbah();
+    } catch (error) {
+        toast.error(pesanGalatUbah(error, 'Gagal memperbarui regulasi.'));
+    } finally {
+        memprosesUbah.value = false;
+    }
+}
+
 onMounted(muatInformasi);
 
 function ubahDialog(buka: boolean): void {
@@ -455,21 +663,77 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
             </div>
 
             <div v-else class="flex flex-col gap-8">
-                <!-- informasi & regulasi (diisi dari form Ubah informasi) -->
-                <section class="rounded-lg border bg-neutral-50 p-3">
-                    <h3 class="font-bold">Informasi &amp; regulasi</h3>
-                    <p
-                        class="mt-1 text-sm whitespace-pre-line text-neutral-700"
-                    >
-                        {{ informasi.informasi_regulasi || 'Belum diisi.' }}
-                    </p>
-                    <Link
-                        v-if="informasi.dapat_diubah"
-                        :href="`/eo/events/${event.id}/ubah`"
-                        class="mt-2 inline-block text-xs font-semibold text-[#17564C] hover:underline"
-                    >
-                        Ubah lewat form informasi event
-                    </Link>
+                <!-- informasi & regulasi (bisa diubah langsung di sini) -->
+                <section
+                    class="rounded-lg border bg-neutral-50 p-3"
+                    data-test="kelola-regulasi"
+                >
+                    <div class="flex items-start justify-between gap-3">
+                        <h3 class="font-bold">Informasi &amp; regulasi</h3>
+                        <button
+                            v-if="
+                                informasi.dapat_diubah &&
+                                modeEdit?.bagian !== 'regulasi'
+                            "
+                            type="button"
+                            class="shrink-0 text-xs font-semibold text-[#17564C] hover:underline"
+                            data-test="ubah-regulasi"
+                            @click="mulaiUbahRegulasi"
+                        >
+                            Ubah
+                        </button>
+                    </div>
+
+                    <template v-if="modeEdit?.bagian === 'regulasi'">
+                        <div class="mt-2 space-y-1">
+                            <textarea
+                                v-model="formUbahRegulasi.informasi_regulasi"
+                                rows="4"
+                                :class="kelasInput"
+                                :aria-invalid="
+                                    Boolean(galatUbah.informasi_regulasi)
+                                "
+                                data-test="input-ubah-regulasi"
+                            />
+                            <InputError
+                                :message="galatUbah.informasi_regulasi"
+                            />
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                            <button
+                                type="button"
+                                :disabled="memprosesUbah"
+                                class="rounded-lg bg-[#17564C] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                data-test="simpan-regulasi"
+                                @click="simpanUbahRegulasi"
+                            >
+                                {{ memprosesUbah ? 'Menyimpan...' : 'Simpan' }}
+                            </button>
+                            <button
+                                type="button"
+                                class="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-neutral-100"
+                                data-test="batal-ubah-regulasi"
+                                @click="batalUbah"
+                            >
+                                Batal
+                            </button>
+                        </div>
+                    </template>
+
+                    <template v-else>
+                        <p
+                            class="mt-1 text-sm whitespace-pre-line text-neutral-700"
+                        >
+                            {{ informasi.informasi_regulasi || 'Belum diisi.' }}
+                        </p>
+                        <Link
+                            v-if="informasi.dapat_diubah"
+                            :href="`/eo/events/${event.id}/ubah`"
+                            class="mt-2 inline-block text-xs font-semibold text-[#17564C] hover:underline"
+                        >
+                            Ubah data event lainnya
+                        </Link>
+                    </template>
                 </section>
 
                 <!-- rundown -->
@@ -487,33 +751,168 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                         <li
                             v-for="butir in informasi.rundown"
                             :key="butir.id"
-                            class="flex items-start justify-between gap-3 p-3"
+                            class="p-3"
                         >
-                            <div class="min-w-0">
-                                <p class="text-sm font-semibold">
-                                    {{ butir.judul }}
-                                </p>
-                                <p class="text-xs text-neutral-500">
-                                    {{ tampilWaktu(butir.waktu_mulai) }}
-                                    <template v-if="butir.waktu_selesai">
-                                        – {{ tampilWaktu(butir.waktu_selesai) }}
-                                    </template>
-                                </p>
-                                <p
-                                    v-if="butir.deskripsi"
-                                    class="mt-1 text-xs text-neutral-600"
-                                >
-                                    {{ butir.deskripsi }}
-                                </p>
-                            </div>
-                            <button
-                                v-if="informasi.dapat_diubah"
-                                type="button"
-                                class="shrink-0 text-xs font-semibold text-destructive hover:underline"
-                                @click="hapusRundown(butir.id)"
+                            <template
+                                v-if="
+                                    modeEdit?.bagian === 'rundown' &&
+                                    modeEdit.id === butir.id
+                                "
                             >
-                                Hapus
-                            </button>
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="space-y-1 sm:col-span-2">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-rundown-judul-${butir.id}`"
+                                        >
+                                            Judul aktivitas
+                                        </label>
+                                        <input
+                                            :id="`ubah-rundown-judul-${butir.id}`"
+                                            v-model="
+                                                formUbahRundown.judul_aktivitas
+                                            "
+                                            type="text"
+                                            maxlength="255"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(
+                                                    galatUbah.judul_aktivitas,
+                                                )
+                                            "
+                                        />
+                                        <InputError
+                                            :message="galatUbah.judul_aktivitas"
+                                        />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-rundown-mulai-${butir.id}`"
+                                        >
+                                            Waktu mulai
+                                        </label>
+                                        <input
+                                            :id="`ubah-rundown-mulai-${butir.id}`"
+                                            v-model="
+                                                formUbahRundown.waktu_mulai
+                                            "
+                                            type="datetime-local"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(galatUbah.waktu_mulai)
+                                            "
+                                        />
+                                        <InputError
+                                            :message="galatUbah.waktu_mulai"
+                                        />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-rundown-selesai-${butir.id}`"
+                                        >
+                                            Waktu selesai (opsional)
+                                        </label>
+                                        <input
+                                            :id="`ubah-rundown-selesai-${butir.id}`"
+                                            v-model="
+                                                formUbahRundown.waktu_selesai
+                                            "
+                                            type="datetime-local"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(galatUbah.waktu_selesai)
+                                            "
+                                        />
+                                        <InputError
+                                            :message="galatUbah.waktu_selesai"
+                                        />
+                                    </div>
+                                    <div class="space-y-1 sm:col-span-2">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-rundown-deskripsi-${butir.id}`"
+                                        >
+                                            Deskripsi (opsional)
+                                        </label>
+                                        <textarea
+                                            :id="`ubah-rundown-deskripsi-${butir.id}`"
+                                            v-model="formUbahRundown.deskripsi"
+                                            rows="2"
+                                            :class="kelasInput"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex gap-2">
+                                    <button
+                                        type="button"
+                                        :disabled="memprosesUbah"
+                                        class="rounded-lg bg-[#17564C] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                        :data-test="`simpan-rundown-${butir.id}`"
+                                        @click="simpanUbahRundown"
+                                    >
+                                        {{
+                                            memprosesUbah
+                                                ? 'Menyimpan...'
+                                                : 'Simpan'
+                                        }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-neutral-100"
+                                        @click="batalUbah"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div
+                                v-else
+                                class="flex items-start justify-between gap-3"
+                            >
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold">
+                                        {{ butir.judul }}
+                                    </p>
+                                    <p class="text-xs text-neutral-500">
+                                        {{ tampilWaktu(butir.waktu_mulai) }}
+                                        <template v-if="butir.waktu_selesai">
+                                            –
+                                            {{
+                                                tampilWaktu(butir.waktu_selesai)
+                                            }}
+                                        </template>
+                                    </p>
+                                    <p
+                                        v-if="butir.deskripsi"
+                                        class="mt-1 text-xs text-neutral-600"
+                                    >
+                                        {{ butir.deskripsi }}
+                                    </p>
+                                </div>
+                                <div
+                                    v-if="informasi.dapat_diubah"
+                                    class="flex shrink-0 items-center gap-3"
+                                >
+                                    <button
+                                        type="button"
+                                        class="text-xs font-semibold text-[#17564C] hover:underline"
+                                        :data-test="`ubah-rundown-${butir.id}`"
+                                        @click="mulaiUbahRundown(butir)"
+                                    >
+                                        Ubah
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="text-xs font-semibold text-destructive hover:underline"
+                                        @click="hapusRundown(butir.id)"
+                                    >
+                                        Hapus
+                                    </button>
+                                </div>
+                            </div>
                         </li>
                     </ul>
                     <p v-else class="mt-3 text-sm text-neutral-500">
@@ -623,42 +1022,153 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                         <li
                             v-for="dok in informasi.dokumen"
                             :key="dok.id"
-                            class="flex items-center justify-between gap-3 p-3"
+                            class="p-3"
                         >
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold">
-                                    {{ dok.nama }}
-                                </p>
-                                <span
-                                    class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
-                                    :class="
-                                        dok.jenis === 'layout'
-                                            ? 'bg-[#17564C]/10 text-[#17564C]'
-                                            : 'bg-neutral-100 text-neutral-700'
-                                    "
-                                >
-                                    {{
-                                        dok.jenis === 'layout'
-                                            ? 'Layout'
-                                            : 'Dokumen'
-                                    }}
-                                </span>
-                            </div>
-                            <div class="flex shrink-0 items-center gap-3">
-                                <a
-                                    :href="dok.unduh_url"
-                                    class="text-xs font-semibold text-[#17564C] hover:underline"
-                                >
-                                    Unduh
-                                </a>
-                                <button
-                                    v-if="informasi.dapat_diubah"
-                                    type="button"
-                                    class="text-xs font-semibold text-destructive hover:underline"
-                                    @click="hapusDokumen(dok.id)"
-                                >
-                                    Hapus
-                                </button>
+                            <template
+                                v-if="
+                                    modeEdit?.bagian === 'dokumen' &&
+                                    modeEdit.id === dok.id
+                                "
+                            >
+                                <div class="grid gap-3 sm:grid-cols-3">
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-dokumen-nama-${dok.id}`"
+                                        >
+                                            Nama dokumen
+                                        </label>
+                                        <input
+                                            :id="`ubah-dokumen-nama-${dok.id}`"
+                                            v-model="
+                                                formUbahDokumen.nama_dokumen
+                                            "
+                                            type="text"
+                                            maxlength="255"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(galatUbah.nama_dokumen)
+                                            "
+                                        />
+                                        <InputError
+                                            :message="galatUbah.nama_dokumen"
+                                        />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-dokumen-jenis-${dok.id}`"
+                                        >
+                                            Jenis
+                                        </label>
+                                        <select
+                                            :id="`ubah-dokumen-jenis-${dok.id}`"
+                                            v-model="formUbahDokumen.jenis"
+                                            :class="kelasInput"
+                                        >
+                                            <option value="dokumen">
+                                                Dokumen
+                                            </option>
+                                            <option value="layout">
+                                                Layout
+                                            </option>
+                                        </select>
+                                        <InputError
+                                            :message="galatUbah.jenis"
+                                        />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-dokumen-file-${dok.id}`"
+                                        >
+                                            Ganti berkas (opsional)
+                                        </label>
+                                        <input
+                                            :id="`ubah-dokumen-file-${dok.id}`"
+                                            type="file"
+                                            accept=".pdf,.jpg,.jpeg,.png"
+                                            :class="kelasInput"
+                                            @change="pilihBerkasUbah"
+                                        />
+                                        <p class="text-[11px] text-neutral-500">
+                                            Kosongkan bila berkas tidak diganti.
+                                        </p>
+                                        <InputError :message="galatUbah.file" />
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex gap-2">
+                                    <button
+                                        type="button"
+                                        :disabled="memprosesUbah"
+                                        class="rounded-lg bg-[#17564C] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                        :data-test="`simpan-dokumen-${dok.id}`"
+                                        @click="simpanUbahDokumen"
+                                    >
+                                        {{
+                                            memprosesUbah
+                                                ? 'Menyimpan...'
+                                                : 'Simpan'
+                                        }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-neutral-100"
+                                        @click="batalUbah"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div
+                                v-else
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold">
+                                        {{ dok.nama }}
+                                    </p>
+                                    <span
+                                        class="mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                                        :class="
+                                            dok.jenis === 'layout'
+                                                ? 'bg-[#17564C]/10 text-[#17564C]'
+                                                : 'bg-neutral-100 text-neutral-700'
+                                        "
+                                    >
+                                        {{
+                                            dok.jenis === 'layout'
+                                                ? 'Layout'
+                                                : 'Dokumen'
+                                        }}
+                                    </span>
+                                </div>
+                                <div class="flex shrink-0 items-center gap-3">
+                                    <a
+                                        :href="dok.unduh_url"
+                                        class="text-xs font-semibold text-[#17564C] hover:underline"
+                                    >
+                                        Unduh
+                                    </a>
+                                    <template v-if="informasi.dapat_diubah">
+                                        <button
+                                            type="button"
+                                            class="text-xs font-semibold text-[#17564C] hover:underline"
+                                            :data-test="`ubah-dokumen-${dok.id}`"
+                                            @click="mulaiUbahDokumen(dok)"
+                                        >
+                                            Ubah
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="text-xs font-semibold text-destructive hover:underline"
+                                            @click="hapusDokumen(dok.id)"
+                                        >
+                                            Hapus
+                                        </button>
+                                    </template>
+                                </div>
                             </div>
                         </li>
                     </ul>
@@ -754,27 +1264,118 @@ const belumSelesai = computed(() => props.event.tanggal_selesai > hariIni);
                         <li
                             v-for="kontak in informasi.kontak_darurat"
                             :key="kontak.id"
-                            class="flex items-center justify-between gap-3 p-3"
+                            class="p-3"
                         >
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold">
-                                    {{ kontak.nama }}
-                                </p>
-                                <a
-                                    :href="`tel:${kontak.nomor_telepon}`"
-                                    class="text-xs text-[#17564C] hover:underline"
-                                >
-                                    {{ kontak.nomor_telepon }}
-                                </a>
-                            </div>
-                            <button
-                                v-if="informasi.dapat_diubah"
-                                type="button"
-                                class="shrink-0 text-xs font-semibold text-destructive hover:underline"
-                                @click="hapusKontak(kontak.id)"
+                            <template
+                                v-if="
+                                    modeEdit?.bagian === 'kontak' &&
+                                    modeEdit.id === kontak.id
+                                "
                             >
-                                Hapus
-                            </button>
+                                <div class="grid gap-3 sm:grid-cols-2">
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-kontak-nama-${kontak.id}`"
+                                        >
+                                            Nama kontak
+                                        </label>
+                                        <input
+                                            :id="`ubah-kontak-nama-${kontak.id}`"
+                                            v-model="formUbahKontak.nama"
+                                            type="text"
+                                            maxlength="100"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(galatUbah.nama)
+                                            "
+                                        />
+                                        <InputError :message="galatUbah.nama" />
+                                    </div>
+                                    <div class="space-y-1">
+                                        <label
+                                            class="text-xs font-medium"
+                                            :for="`ubah-kontak-nomor-${kontak.id}`"
+                                        >
+                                            Nomor telepon
+                                        </label>
+                                        <input
+                                            :id="`ubah-kontak-nomor-${kontak.id}`"
+                                            v-model="
+                                                formUbahKontak.nomor_telepon
+                                            "
+                                            type="tel"
+                                            maxlength="20"
+                                            :class="kelasInput"
+                                            :aria-invalid="
+                                                Boolean(galatUbah.nomor_telepon)
+                                            "
+                                        />
+                                        <InputError
+                                            :message="galatUbah.nomor_telepon"
+                                        />
+                                    </div>
+                                </div>
+                                <div class="mt-3 flex gap-2">
+                                    <button
+                                        type="button"
+                                        :disabled="memprosesUbah"
+                                        class="rounded-lg bg-[#17564C] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                        :data-test="`simpan-kontak-${kontak.id}`"
+                                        @click="simpanUbahKontak"
+                                    >
+                                        {{
+                                            memprosesUbah
+                                                ? 'Menyimpan...'
+                                                : 'Simpan'
+                                        }}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="rounded-lg border px-3 py-1.5 text-xs font-semibold hover:bg-neutral-100"
+                                        @click="batalUbah"
+                                    >
+                                        Batal
+                                    </button>
+                                </div>
+                            </template>
+
+                            <div
+                                v-else
+                                class="flex items-center justify-between gap-3"
+                            >
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold">
+                                        {{ kontak.nama }}
+                                    </p>
+                                    <a
+                                        :href="`tel:${kontak.nomor_telepon}`"
+                                        class="text-xs text-[#17564C] hover:underline"
+                                    >
+                                        {{ kontak.nomor_telepon }}
+                                    </a>
+                                </div>
+                                <div
+                                    v-if="informasi.dapat_diubah"
+                                    class="flex shrink-0 items-center gap-3"
+                                >
+                                    <button
+                                        type="button"
+                                        class="text-xs font-semibold text-[#17564C] hover:underline"
+                                        :data-test="`ubah-kontak-${kontak.id}`"
+                                        @click="mulaiUbahKontak(kontak)"
+                                    >
+                                        Ubah
+                                    </button>
+                                    <button
+                                        type="button"
+                                        class="text-xs font-semibold text-destructive hover:underline"
+                                        @click="hapusKontak(kontak.id)"
+                                    >
+                                        Hapus
+                                    </button>
+                                </div>
+                            </div>
                         </li>
                     </ul>
                     <p v-else class="mt-3 text-sm text-neutral-500">

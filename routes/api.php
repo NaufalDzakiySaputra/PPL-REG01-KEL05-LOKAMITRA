@@ -122,10 +122,15 @@ Route::prefix('v1')->middleware('web')->group(function () {
             Route::post('/partnership-requests', [PartnershipRequestController::class, 'store'])
                 ->name('partnership-requests.store');
 
-            // Informasi publik event (PBI-035): rundown, layout/dokumen, kontak darurat.
+            // Informasi publik event (PBI-035, PBI-036): rundown, layout/dokumen,
+            // regulasi, dan kontak darurat.
             Route::get('/events/{event}/informasi-publik', [InformasiPublikEventController::class, 'show'])
                 ->whereNumber('event')
                 ->name('events.informasi-publik.show');
+
+            Route::put('/events/{event}/informasi-regulasi', [InformasiPublikEventController::class, 'updateRegulasi'])
+                ->whereNumber('event')
+                ->name('events.informasi-regulasi.update');
 
             Route::post('/events/{event}/rundown', [InformasiPublikEventController::class, 'storeRundown'])
                 ->whereNumber('event')
@@ -142,6 +147,10 @@ Route::prefix('v1')->middleware('web')->group(function () {
             Route::post('/events/{event}/dokumen', [InformasiPublikEventController::class, 'storeDokumen'])
                 ->whereNumber('event')
                 ->name('events.dokumen.store');
+
+            Route::put('/events/{event}/dokumen/{dokumen}', [InformasiPublikEventController::class, 'updateDokumen'])
+                ->whereNumber(['event', 'dokumen'])
+                ->name('events.dokumen.update');
 
             Route::delete('/events/{event}/dokumen/{dokumen}', [InformasiPublikEventController::class, 'destroyDokumen'])
                 ->whereNumber(['event', 'dokumen'])
