@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EventController as AdminEventController;
 use App\Http\Controllers\Admin\PengajuanController;
 use App\Http\Controllers\Akademisi\DashboardController as AkademisiDashboardController;
+use App\Http\Controllers\Akademisi\EventController as AkademisiEventController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eo\DashboardController as EoDashboardController;
@@ -177,6 +178,17 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/akademisi/dashboard', AkademisiDashboardController::class)
         ->middleware('role:akademisi')
         ->name('akademisi.dashboard');
+
+    // Informasi event publik untuk Akademisi (F-06 / PBI-041):
+    // hanya event yang sudah dipublikasikan dan belum berakhir.
+    Route::prefix('akademisi')->name('akademisi.')->middleware('role:akademisi')->group(function () {
+        Route::get('/events', [AkademisiEventController::class, 'index'])
+            ->name('events.index');
+
+        Route::get('/events/{event}', [AkademisiEventController::class, 'show'])
+            ->whereNumber('event')
+            ->name('events.show');
+    });
 
     Route::get('/media/dashboard', MediaDashboardController::class)
         ->middleware('role:media')
