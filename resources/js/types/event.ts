@@ -68,4 +68,10 @@ export type DetailEventData = {
     rundown: ButirRundown[];
     dokumen: ButirDokumen[];
     kontak_darurat: ButirKontak[];
+    // Hanya diisi pada area media (PBI-042), opsional untuk peran lain.
+    penyelenggara?: {
+        nama: string;
+        website: string | null;
+        alamat: string | null;
+    };
 };

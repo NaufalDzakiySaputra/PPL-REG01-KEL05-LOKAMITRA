@@ -2,10 +2,12 @@
 import { Link } from '@inertiajs/vue3';
 import {
     ArrowLeft,
+    Building2,
     CalendarClock,
     CalendarDays,
     Download,
     FileText,
+    Globe,
     Info,
     MapPin,
     Phone,
@@ -16,13 +18,17 @@ import DashCard from '@/components/dashboard/DashCard.vue';
 import type { DetailEventData } from '@/types/event';
 
 // Detail event publik untuk peran mitra (F-06). Hanya berisi informasi dari
-// event yang sudah dipublikasikan. Dipakai bersama oleh halaman Pemerintah
-// Daerah dan Vendor/UMKM.
-defineProps<{
-    event: DetailEventData;
-    tautanKembali: string;
-    awalan: string;
-}>();
+// event yang sudah dipublikasikan. Dipakai bersama oleh seluruh area mitra;
+// judul kartu kontak dan data penyelenggara bersifat opsional (PBI-042).
+withDefaults(
+    defineProps<{
+        event: DetailEventData;
+        tautanKembali: string;
+        awalan: string;
+        judulKontak?: string;
+    }>(),
+    { judulKontak: 'Kontak darurat' },
+);
 </script>
 
 <template>
@@ -292,7 +298,59 @@ defineProps<{
                     </dl>
                 </DashCard>
 
-                <DashCard judul="Kontak darurat">
+                <DashCard v-if="event.penyelenggara" judul="Penyelenggara">
+                    <div
+                        class="space-y-3 text-sm"
+                        data-test="penyelenggara-event"
+                    >
+                        <div class="flex items-start gap-3">
+                            <Building2
+                                class="mt-0.5 size-4 shrink-0 text-[#17564C] dark:text-emerald-300"
+                            />
+                            <div>
+                                <p class="font-semibold">
+                                    {{ event.penyelenggara.nama }}
+                                </p>
+                                <p
+                                    class="text-xs text-neutral-500 dark:text-muted-foreground"
+                                >
+                                    Penyelenggara event
+                                </p>
+                            </div>
+                        </div>
+                        <div
+                            v-if="event.penyelenggara.website"
+                            class="flex items-start gap-3"
+                        >
+                            <Globe
+                                class="mt-0.5 size-4 shrink-0 text-[#17564C] dark:text-emerald-300"
+                            />
+                            <a
+                                :href="event.penyelenggara.website"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                class="text-xs font-medium break-all text-[#17564C] hover:underline dark:text-emerald-300"
+                            >
+                                {{ event.penyelenggara.website }}
+                            </a>
+                        </div>
+                        <div
+                            v-if="event.penyelenggara.alamat"
+                            class="flex items-start gap-3"
+                        >
+                            <MapPin
+                                class="mt-0.5 size-4 shrink-0 text-[#17564C] dark:text-emerald-300"
+                            />
+                            <p
+                                class="text-xs text-neutral-600 dark:text-muted-foreground"
+                            >
+                                {{ event.penyelenggara.alamat }}
+                            </p>
+                        </div>
+                    </div>
+                </DashCard>
+
+                <DashCard :judul="judulKontak">
                     <ul
                         v-if="event.kontak_darurat.length > 0"
                         class="space-y-3"
@@ -325,7 +383,8 @@ defineProps<{
                         v-else
                         class="py-4 text-sm text-neutral-500 dark:text-muted-foreground"
                     >
-                        Belum ada kontak darurat untuk event ini.
+                        Belum ada
+                        {{ judulKontak.toLowerCase() }} untuk event ini.
                     </p>
                 </DashCard>
             </div>
