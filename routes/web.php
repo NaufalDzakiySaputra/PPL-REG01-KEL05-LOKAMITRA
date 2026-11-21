@@ -14,6 +14,7 @@ use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Komunitas\EventController as KomunitasEventController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
+use App\Http\Controllers\Media\EventController as MediaEventController;
 use App\Http\Controllers\Pemda\DashboardController as PemdaDashboardController;
 use App\Http\Controllers\Pemda\EventController as PemdaEventController;
 use App\Http\Controllers\Pengunjung\DashboardController as PengunjungDashboardController;
@@ -193,6 +194,17 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
     Route::get('/media/dashboard', MediaDashboardController::class)
         ->middleware('role:media')
         ->name('media.dashboard');
+
+    // Informasi event publik untuk Media (F-06 / PBI-042):
+    // hanya event yang sudah dipublikasikan dan belum berakhir.
+    Route::prefix('media')->name('media.')->middleware('role:media')->group(function () {
+        Route::get('/events', [MediaEventController::class, 'index'])
+            ->name('events.index');
+
+        Route::get('/events/{event}', [MediaEventController::class, 'show'])
+            ->whereNumber('event')
+            ->name('events.show');
+    });
 
     Route::get('/pengunjung/dashboard', PengunjungDashboardController::class)
         ->middleware('role:pengunjung')
