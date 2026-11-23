@@ -1,15 +1,16 @@
 <script setup lang="ts">
-// Kartu angka besar: label kecil, nilai tebal berwarna hijau, catatan di bawah.
+// Kartu angka besar: label kecil, nilai tebal berwarna hijau admin,
+// catatan di bawah. Semua dashboard memakai aksen yang sama.
 withDefaults(
     defineProps<{
         label: string;
         nilai: string | number;
         catatan?: string;
-        // admin = hijau tua; eo = hijau teal
+        // admin = hijau tua (default); eo = hijau teal (kompatibilitas lama)
         aksen?: 'admin' | 'eo';
         nadaCatatan?: 'hijau' | 'kuning' | 'abu';
     }>(),
-    { aksen: 'eo', nadaCatatan: 'abu' },
+    { aksen: 'admin', nadaCatatan: 'abu' },
 );
 </script>
 
@@ -23,9 +24,9 @@ withDefaults(
         <p
             :class="[
                 'mt-1 text-3xl font-extrabold',
-                aksen === 'admin'
-                    ? 'text-[#245C3B] dark:text-emerald-400'
-                    : 'text-[#17564C] dark:text-teal-300',
+                aksen === 'eo'
+                    ? 'text-[#17564C] dark:text-teal-300'
+                    : 'text-[#245C3B] dark:text-emerald-400',
             ]"
         >
             {{ nilai }}

@@ -11,6 +11,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Eo\DashboardController as EoDashboardController;
 use App\Http\Controllers\Eo\EventController as EoEventController;
 use App\Http\Controllers\Eo\StakeholderController as EoStakeholderController;
+use App\Http\Controllers\Forum\HalamanForumController;
 use App\Http\Controllers\Komunitas\DashboardController as KomunitasDashboardController;
 use App\Http\Controllers\Komunitas\EventController as KomunitasEventController;
 use App\Http\Controllers\Media\DashboardController as MediaDashboardController;
@@ -205,6 +206,22 @@ Route::middleware(['auth', PreventBackHistory::class])->group(function () {
             ->whereNumber('event')
             ->name('events.show');
     });
+
+    // Forum Diskusi (F-07): satu halaman bersama untuk enam peran mitra.
+    // Nama rute per role diperlukan agar menu sidebar RoleMenuService aktif.
+    foreach (['eo', 'vendor', 'pemda', 'komunitas', 'akademisi', 'media'] as $forumRole) {
+        Route::prefix($forumRole)
+            ->name($forumRole.'.')
+            ->middleware('role:'.$forumRole)
+            ->group(function () {
+                Route::get('/forum', [HalamanForumController::class, 'index'])
+                    ->name('forum.index');
+
+                Route::get('/forum/{event}', [HalamanForumController::class, 'show'])
+                    ->whereNumber('event')
+                    ->name('forum.show');
+            });
+    }
 
     Route::get('/pengunjung/dashboard', PengunjungDashboardController::class)
         ->middleware('role:pengunjung')

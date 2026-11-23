@@ -165,6 +165,11 @@ class User extends Authenticatable
         return $this->hasMany(DokumenEvent::class, 'pengunggah_akun_id');
     }
 
+    public function forumDibuat(): HasMany
+    {
+        return $this->hasMany(Forum::class, 'pembuat_akun_id');
+    }
+
     public function pesanForum(): HasMany
     {
         return $this->hasMany(PesanForum::class, 'pengirim_akun_id');

@@ -14,6 +14,7 @@ class Forum extends Model
 
     protected $fillable = [
         'event_id',
+        'pembuat_akun_id',
         'judul',
         'deskripsi',
         'tanggal_dibuat',
@@ -34,5 +35,10 @@ class Forum extends Model
     public function pesan(): HasMany
     {
         return $this->hasMany(PesanForum::class, 'forum_id', 'forum_id');
+    }
+
+    public function pembuat(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'pembuat_akun_id');
     }
 }

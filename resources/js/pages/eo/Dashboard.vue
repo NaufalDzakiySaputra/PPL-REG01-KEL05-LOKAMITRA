@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { Bell } from '@lucide/vue';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import StatCard from '@/components/dashboard/StatCard.vue';
 
 // Dashboard EO (Figma "Dashboard Event"). Data dari EoDashboardService.
+// Gaya visual mengikuti Dashboard Admin supaya konsisten lintas peran.
 defineProps<{
     notifikasiBelumDibaca: number;
     profil: { nama: string | null; status_verifikasi: string | null };
@@ -74,7 +74,7 @@ defineOptions({
     <Head title="Dashboard Event" />
 
     <div class="flex flex-col gap-4 p-4 md:p-6">
-        <header class="flex items-start justify-between gap-3">
+        <header class="flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h1
                     class="text-2xl font-extrabold"
@@ -87,39 +87,43 @@ defineOptions({
                     yang Anda kelola.
                 </p>
             </div>
-            <div
-                class="relative flex size-10 shrink-0 items-center justify-center rounded-xl border border-neutral-200 bg-white dark:border-border dark:bg-card"
-                :title="`${notifikasiBelumDibaca} notifikasi belum dibaca`"
-            >
-                <Bell class="size-4" />
+            <div class="flex items-center gap-2">
                 <span
                     v-if="notifikasiBelumDibaca > 0"
-                    class="absolute top-2 right-2 size-2 rounded-full bg-amber-500"
-                />
+                    class="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800"
+                    :title="`${notifikasiBelumDibaca} notifikasi belum dibaca`"
+                >
+                    {{ notifikasiBelumDibaca }} notifikasi
+                </span>
+                <Link
+                    href="/eo/events/buat"
+                    class="rounded-lg bg-[#245C3B] px-4 py-2 text-sm font-semibold text-white hover:bg-[#1c4a2f]"
+                >
+                    Buat event
+                </Link>
             </div>
         </header>
 
         <!-- belum ada event -->
-        <DashCard v-if="!event">
-            <p class="text-sm font-semibold">Belum ada event aktif</p>
-            <p class="mt-1 text-sm text-neutral-600 dark:text-muted-foreground">
-                Buat event pertama Anda untuk mulai mengelola persiapan,
-                stakeholder, dan tugas di sini.
+        <DashCard v-if="!event" judul="Event aktif">
+            <p class="py-6 text-center text-sm text-neutral-500">
+                Belum ada event aktif. Buat event pertama Anda untuk mulai
+                mengelola persiapan, stakeholder, dan tugas di sini.
             </p>
         </DashCard>
 
         <template v-else>
             <!-- event aktif -->
-            <DashCard>
+            <DashCard judul="Event aktif">
+                <template #aksi>
+                    <span class="text-xs text-neutral-500">
+                        Detail event yang sedang Anda kelola
+                    </span>
+                </template>
                 <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <p
-                            class="text-[11px] font-semibold tracking-wide text-neutral-500"
-                        >
-                            EVENT AKTIF
-                        </p>
+                    <div class="min-w-0">
                         <h2 class="text-xl font-extrabold">{{ event.nama }}</h2>
-                        <p class="text-xs text-neutral-500">
+                        <p class="mt-0.5 text-xs text-neutral-500">
                             {{
                                 [event.kategori, event.lokasi]
                                     .filter(Boolean)
@@ -127,7 +131,7 @@ defineOptions({
                             }}
                         </p>
                     </div>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-2">
                         <span
                             :class="[
                                 'rounded-full px-3 py-1 text-xs font-semibold',
@@ -147,38 +151,45 @@ defineOptions({
                         <Link
                             v-if="event.href"
                             :href="event.href"
-                            class="rounded-lg border border-[#17564C] px-4 py-2 text-sm font-semibold text-[#17564C] hover:bg-[#17564C]/5"
+                            class="rounded-lg border border-[#245C3B] px-4 py-1.5 text-xs font-semibold text-[#245C3B] hover:bg-[#245C3B]/5"
                         >
-                            Lihat detail event
+                            Lihat detail
                         </Link>
                     </div>
                 </div>
             </DashCard>
 
             <!-- kartu ringkasan -->
-            <section v-if="ringkasan" class="grid gap-4 md:grid-cols-3">
+            <section
+                v-if="ringkasan"
+                class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+            >
                 <StatCard
+                    aksen="admin"
                     label="Persiapan"
                     :nilai="`${ringkasan.persiapanPersen}%`"
                     :catatan="`${ringkasan.kebutuhanSiap} dari ${ringkasan.kebutuhanTotal} kebutuhan siap`"
+                    nada-catatan="hijau"
                 />
                 <StatCard
+                    aksen="admin"
                     label="Tugas selesai"
                     :nilai="`${ringkasan.tugasSelesai}/${ringkasan.tugasTotal}`"
                     :catatan="`${ringkasan.tugasBerjalan} tugas masih berjalan`"
+                    nada-catatan="kuning"
                 />
                 <StatCard
+                    aksen="admin"
                     label="Stakeholder terlibat"
                     :nilai="ringkasan.stakeholder"
                     :catatan="`${ringkasan.jenisStakeholder} jenis stakeholder`"
                 />
-                <div class="md:col-span-3">
-                    <StatCard
-                        label="Hari menuju event"
-                        :nilai="event.hariMenuju"
-                        :catatan="event.tanggalMulai"
-                    />
-                </div>
+                <StatCard
+                    aksen="admin"
+                    label="Hari menuju event"
+                    :nilai="event.hariMenuju"
+                    :catatan="event.tanggalMulai"
+                />
             </section>
 
             <section class="grid gap-4 lg:grid-cols-[3fr_2fr]">
@@ -194,11 +205,11 @@ defineOptions({
                             :key="k.judul"
                             class="flex items-center justify-between gap-3 py-3"
                         >
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm font-semibold">
                                     {{ k.judul }}
                                 </p>
-                                <p class="text-xs text-neutral-500">
+                                <p class="mt-0.5 text-xs text-neutral-500">
                                     {{ k.keterangan }}
                                 </p>
                             </div>
@@ -223,6 +234,11 @@ defineOptions({
                 </DashCard>
 
                 <DashCard judul="Tenggat terdekat">
+                    <template #aksi>
+                        <span class="text-xs text-neutral-500">
+                            {{ tenggat?.length ?? 0 }} tenggat
+                        </span>
+                    </template>
                     <p
                         v-if="!tenggat || tenggat.length === 0"
                         class="py-6 text-center text-sm text-neutral-500"
@@ -245,7 +261,7 @@ defineOptions({
                                     t.bulan
                                 }}</span>
                             </div>
-                            <div>
+                            <div class="min-w-0">
                                 <p class="text-sm font-semibold">
                                     {{ t.judul }}
                                 </p>
@@ -260,17 +276,22 @@ defineOptions({
 
             <section class="grid gap-4 lg:grid-cols-[3fr_2fr]">
                 <DashCard judul="Progres tugas per stakeholder">
+                    <template #aksi>
+                        <span class="text-xs text-neutral-500">
+                            Persentase tugas selesai
+                        </span>
+                    </template>
                     <ul class="space-y-4">
                         <li v-for="p in progresStakeholder" :key="p.peran">
                             <div class="mb-1 flex justify-between text-xs">
                                 <span class="font-medium">{{ p.peran }}</span>
-                                <span class="text-neutral-500">
+                                <span class="font-semibold">
                                     {{ p.selesai }}/{{ p.total }} tugas
                                 </span>
                             </div>
-                            <div class="h-2.5 rounded-full bg-neutral-200">
+                            <div class="h-2 rounded-full bg-neutral-200">
                                 <div
-                                    class="h-2.5 rounded-full bg-[#17564C]"
+                                    class="h-2 rounded-full bg-[#245C3B]"
                                     :style="{ width: `${p.persen}%` }"
                                 />
                             </div>
@@ -295,7 +316,7 @@ defineOptions({
                                 <span class="font-semibold">{{ a.oleh }}</span>
                                 {{ a.teks }}
                             </p>
-                            <p class="text-xs text-neutral-500">
+                            <p class="mt-0.5 text-xs text-neutral-500">
                                 {{ a.waktu }}
                             </p>
                         </li>
