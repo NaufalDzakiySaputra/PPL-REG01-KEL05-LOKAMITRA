@@ -26,7 +26,7 @@ class PesanController extends Controller
         $forum->load('pembuat');
 
         $pesan = $forum->pesan()
-            ->with('pengirim')
+            ->with('pengirim', 'lampiran.pengunggah', 'lampiran.pesan')
             ->oldest('waktu_kirim')
             ->get();
 

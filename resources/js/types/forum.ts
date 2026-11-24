@@ -6,6 +6,16 @@ export type PenggunaForum = {
     role: string;
 };
 
+export type LampiranForum = {
+    id: number;
+    nama_file: string;
+    format_file: string;
+    ukuran_file: number;
+    waktu_upload: string;
+    pengunggah: PenggunaForum | null;
+    url: string;
+};
+
 export type TopikForum = {
     id: number;
     event_id: number;
@@ -21,6 +31,7 @@ export type PesanForum = {
     isi_pesan: string;
     waktu_kirim: string;
     pengirim: PenggunaForum | null;
+    lampiran: LampiranForum[];
 };
 
 export type UtasForum = {
