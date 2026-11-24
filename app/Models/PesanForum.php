@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class PesanForum extends Model
 {
@@ -33,5 +34,10 @@ class PesanForum extends Model
     public function pengirim(): BelongsTo
     {
         return $this->belongsTo(User::class, 'pengirim_akun_id');
+    }
+
+    public function lampiran(): HasMany
+    {
+        return $this->hasMany(LampiranForum::class, 'pesan_forum_id', 'pesan_forum_id');
     }
 }

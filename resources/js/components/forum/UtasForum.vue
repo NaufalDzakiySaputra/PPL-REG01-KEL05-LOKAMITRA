@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { ArrowLeft, MessageSquare } from '@lucide/vue';
-import { ref, watch } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { ArrowLeft, MessageSquare, Paperclip } from '@lucide/vue';
+import { computed, ref, watch } from 'vue';
 import InputError from '@/components/InputError.vue';
 import DashCard from '@/components/dashboard/DashCard.vue';
 import StatCard from '@/components/dashboard/StatCard.vue';
@@ -11,6 +11,7 @@ import { ApiError, api } from '@/lib/api';
 import type {
     DaftarTopikRespons,
     DetailUtasRespons,
+    LampiranForum,
     PesanForum,
     TopikForum,
     UtasForum,
@@ -25,6 +26,11 @@ const props = defineProps<{
     topikAwal: number | null;
 }>();
 
+const page = usePage();
+const adalahAkademisi = computed(
+    () => page.props.auth.user?.role === 'akademisi',
+);
+
 const daftarTopik = ref<TopikForum[]>([]);
 const topikTerpilih = ref<number | null>(props.topikAwal);
 const utas = ref<UtasForum | null>(null);
@@ -35,11 +41,30 @@ const isiPesan = ref('');
 const mengirim = ref(false);
 const kesalahanBidang = ref<Record<string, string>>({});
 
+// Lampiran forum (PBI-045): unggah hanya untuk Akademisi.
+const pesanTerpilih = ref<number | null>(null);
+const fileLampiran = ref<File | null>(null);
+const inputLampiran = ref<HTMLInputElement | null>(null);
+const mengunggah = ref(false);
+const kesalahanLampiran = ref<Record<string, string>>({});
+
 function formatWaktu(nilai: string): string {
     return new Intl.DateTimeFormat('id-ID', {
         dateStyle: 'medium',
         timeStyle: 'short',
     }).format(new Date(nilai));
+}
+
+function formatUkuran(byte: number): string {
+    if (byte < 1024) {
+        return `${byte} B`;
+    }
+
+    if (byte < 1024 * 1024) {
+        return `${Math.round(byte / 1024)} KB`;
+    }
+
+    return `${(byte / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 async function muatDaftarTopik(): Promise<void> {
@@ -88,6 +113,15 @@ async function muatUtas(): Promise<void> {
 }
 
 watch(topikTerpilih, () => void muatUtas(), { immediate: true });
+watch(utas, (nilai) => {
+    if (
+        nilai &&
+        (pesanTerpilih.value === null ||
+            !nilai.pesan.some((pesan) => pesan.id === pesanTerpilih.value))
+    ) {
+        pesanTerpilih.value = nilai.pesan[0]?.id ?? null;
+    }
+});
 void muatDaftarTopik();
 
 async function kirimPesan(): Promise<void> {
@@ -106,7 +140,7 @@ async function kirimPesan(): Promise<void> {
         );
 
         if (utas.value) {
-            utas.value.pesan.push(respons.data);
+            utas.value.pesan.push({ ...respons.data, lampiran: [] });
         }
 
         isiPesan.value = '';
@@ -119,6 +153,57 @@ async function kirimPesan(): Promise<void> {
         }
     } finally {
         mengirim.value = false;
+    }
+}
+
+function pilihLampiran(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    fileLampiran.value = target.files?.[0] ?? null;
+    kesalahanLampiran.value = {};
+}
+
+async function unggahLampiran(): Promise<void> {
+    if (
+        topikTerpilih.value === null ||
+        pesanTerpilih.value === null ||
+        !fileLampiran.value ||
+        mengunggah.value
+    ) {
+        return;
+    }
+
+    mengunggah.value = true;
+    kesalahanLampiran.value = {};
+    pesanKesalahan.value = '';
+
+    const data = new FormData();
+    data.append('pesan_id', String(pesanTerpilih.value));
+    data.append('file_lampiran', fileLampiran.value);
+
+    try {
+        const respons = await api.post<{ data: LampiranForum }>(
+            `/api/v1/forum/${topikTerpilih.value}/lampiran`,
+            data,
+        );
+
+        const pesan = utas.value?.pesan.find(
+            (item) => item.id === pesanTerpilih.value,
+        );
+        pesan?.lampiran.push(respons.data);
+
+        fileLampiran.value = null;
+        if (inputLampiran.value) {
+            inputLampiran.value.value = '';
+        }
+    } catch (error) {
+        if (error instanceof ApiError) {
+            kesalahanLampiran.value = error.fieldErrors;
+            pesanKesalahan.value = error.message;
+        } else {
+            pesanKesalahan.value = 'Lampiran gagal diunggah.';
+        }
+    } finally {
+        mengunggah.value = false;
     }
 }
 </script>
@@ -251,6 +336,37 @@ async function kirimPesan(): Promise<void> {
                                 >
                                     {{ pesan.isi_pesan }}
                                 </p>
+
+                                <ul
+                                    v-if="pesan.lampiran.length > 0"
+                                    class="mt-2 space-y-1"
+                                    data-test="daftar-lampiran"
+                                >
+                                    <li
+                                        v-for="lampiran in pesan.lampiran"
+                                        :key="lampiran.id"
+                                    >
+                                        <a
+                                            :href="lampiran.url"
+                                            class="inline-flex max-w-full items-center gap-1.5 rounded-lg bg-[#E3EFE3] px-2.5 py-1.5 text-xs font-semibold text-[#245C3B] hover:underline dark:bg-emerald-500/15 dark:text-emerald-300"
+                                            data-test="tautan-lampiran"
+                                        >
+                                            <Paperclip
+                                                class="size-3.5 shrink-0"
+                                            />
+                                            <span class="truncate">
+                                                {{ lampiran.nama_file }}
+                                            </span>
+                                            <span class="opacity-70">
+                                                ({{
+                                                    formatUkuran(
+                                                        lampiran.ukuran_file,
+                                                    )
+                                                }})
+                                            </span>
+                                        </a>
+                                    </li>
+                                </ul>
                             </li>
                         </ul>
 
@@ -315,6 +431,77 @@ async function kirimPesan(): Promise<void> {
                                 <MessageSquare class="size-4" />
                                 {{
                                     mengirim ? 'Mengirim...' : 'Kirim tanggapan'
+                                }}
+                            </Button>
+                        </form>
+                    </DashCard>
+
+                    <DashCard
+                        v-if="adalahAkademisi && utas.pesan.length > 0"
+                        judul="Lampirkan berkas"
+                    >
+                        <form
+                            class="flex flex-col gap-3"
+                            @submit.prevent="unggahLampiran"
+                        >
+                            <p class="text-xs text-neutral-500">
+                                Berkas menempel pada tanggapan yang dipilih.
+                                Format PDF, JPG, atau PNG, maksimal 5 MB.
+                            </p>
+                            <div class="flex flex-col gap-1.5">
+                                <Label for="forum-pesan-lampiran">
+                                    Tanggapan
+                                </Label>
+                                <select
+                                    id="forum-pesan-lampiran"
+                                    v-model.number="pesanTerpilih"
+                                    class="flex h-9 w-full rounded-md border border-neutral-200 bg-white px-3 py-1 text-sm shadow-sm"
+                                    data-test="pilih-pesan-lampiran"
+                                >
+                                    <option
+                                        v-for="pesan in utas.pesan"
+                                        :key="pesan.id"
+                                        :value="pesan.id"
+                                    >
+                                        {{ pesan.pengirim?.name ?? 'Peserta' }}
+                                        &middot;
+                                        {{ formatWaktu(pesan.waktu_kirim) }}
+                                    </option>
+                                </select>
+                                <InputError
+                                    :message="kesalahanLampiran.pesan_id"
+                                />
+                            </div>
+                            <div class="flex flex-col gap-1.5">
+                                <Label for="forum-file-lampiran">Berkas</Label>
+                                <input
+                                    id="forum-file-lampiran"
+                                    ref="inputLampiran"
+                                    type="file"
+                                    accept=".pdf,.jpg,.jpeg,.png"
+                                    class="flex w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm shadow-sm"
+                                    data-test="file-lampiran"
+                                    @change="pilihLampiran"
+                                />
+                                <InputError
+                                    :message="kesalahanLampiran.file_lampiran"
+                                />
+                            </div>
+                            <Button
+                                type="submit"
+                                class="w-fit bg-[#245C3B] text-white hover:bg-[#1c4a2f]"
+                                :disabled="
+                                    mengunggah ||
+                                    !fileLampiran ||
+                                    pesanTerpilih === null
+                                "
+                                data-test="unggah-lampiran"
+                            >
+                                <Paperclip class="size-4" />
+                                {{
+                                    mengunggah
+                                        ? 'Mengunggah...'
+                                        : 'Lampirkan berkas'
                                 }}
                             </Button>
                         </form>

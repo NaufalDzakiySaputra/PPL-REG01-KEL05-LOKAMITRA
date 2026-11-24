@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\V1\Eo\EventOptionController;
 use App\Http\Controllers\Api\V1\Eo\InformasiPublikEventController;
 use App\Http\Controllers\Api\V1\Eo\PartnershipRequestController;
 use App\Http\Controllers\Api\V1\Eo\StakeholderController;
+use App\Http\Controllers\Api\V1\Forum\LampiranController;
 use App\Http\Controllers\Api\V1\Forum\PesanController;
 use App\Http\Controllers\Api\V1\Forum\TopikController;
 use App\Http\Controllers\Api\V1\PasswordController;
@@ -118,6 +119,16 @@ Route::prefix('v1')->middleware('web')->group(function () {
                 Route::post('/{forum}/pesan', [PesanController::class, 'store'])
                     ->middleware('role:eo,komunitas,akademisi,pemda,vendor,media')
                     ->name('pesan.store');
+
+                // Lampiran forum (PBI-045): unggah Akademisi, unduh peserta.
+                Route::post('/{forum}/lampiran', [LampiranController::class, 'store'])
+                    ->middleware('role:akademisi')
+                    ->name('lampiran.store');
+
+                Route::get('/{forum}/lampiran/{lampiran}/download', [LampiranController::class, 'download'])
+                    ->whereNumber('lampiran')
+                    ->middleware('role:eo,vendor,pemda,komunitas,akademisi,media,admin')
+                    ->name('lampiran.download');
             });
 
         // Modul Event dan Kolaborasi untuk Event Organizer.

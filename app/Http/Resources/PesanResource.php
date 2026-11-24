@@ -22,6 +22,7 @@ class PesanResource extends JsonResource
                 'name' => $this->pengirim?->name,
                 'role' => $this->pengirim?->role,
             ],
+            'lampiran' => LampiranResource::collection($this->whenLoaded('lampiran')),
         ];
     }
 }
