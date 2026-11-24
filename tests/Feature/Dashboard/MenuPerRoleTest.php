@@ -24,12 +24,13 @@ class MenuPerRoleTest extends TestCase
                 ->where('menu.items.1.href', '/admin/pengajuan'));
     }
 
-    public function test_eo_mendapat_menu_modul_bertema_gelap(): void
+    public function test_eo_mendapat_menu_modul_bertema_terang_seperti_admin(): void
     {
         $this->actingAs(User::factory()->eo()->create())
             ->get(route('eo.dashboard'))
             ->assertInertia(fn (Assert $page) => $page
-                ->where('menu.tema', 'gelap')
+                ->where('menu.panel', 'PANEL EO')
+                ->where('menu.tema', 'terang')
                 ->where('menu.items.0.href', '/eo/dashboard')
                 ->where('menu.items.1.label', 'Event')
                 ->has('menu.items', 12)); // dashboard + 10 modul + profil peran

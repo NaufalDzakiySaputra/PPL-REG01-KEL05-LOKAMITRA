@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             EoSeeder::class,
             AkunContohSeeder::class,
             DemoEventSeeder::class, // data demo event, tugas, dan aktivitas untuk dashboard
+            ForumSeeder::class, // data demo topik dan tanggapan forum diskusi
         ]);
     }
 }

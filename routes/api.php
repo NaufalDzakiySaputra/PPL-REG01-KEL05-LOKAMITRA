@@ -13,6 +13,8 @@ use App\Http\Controllers\Api\V1\Eo\EventOptionController;
 use App\Http\Controllers\Api\V1\Eo\InformasiPublikEventController;
 use App\Http\Controllers\Api\V1\Eo\PartnershipRequestController;
 use App\Http\Controllers\Api\V1\Eo\StakeholderController;
+use App\Http\Controllers\Api\V1\Forum\PesanController;
+use App\Http\Controllers\Api\V1\Forum\TopikController;
 use App\Http\Controllers\Api\V1\PasswordController;
 use App\Http\Controllers\Api\V1\ProfileController;
 use App\Http\Controllers\Api\V1\Publik\EventController as EventPublikController;
@@ -89,6 +91,34 @@ Route::prefix('v1')->middleware('web')->group(function () {
                 ->whereNumber('dokumen')
                 ->name('api.v1.role-profile.dokumen.download');
         });
+
+        // Forum Diskusi (F-07 / PBI-043 s.d. PBI-048).
+        // Akses peserta diverifikasi di ForumAksesService, bukan hanya berdasarkan role.
+        Route::prefix('events/{event}/forum')
+            ->whereNumber('event')
+            ->name('api.v1.forum.')
+            ->group(function () {
+                Route::get('/', [TopikController::class, 'index'])
+                    ->middleware('role:eo,vendor,pemda,komunitas,akademisi,media,admin')
+                    ->name('topik.index');
+
+                Route::post('/', [TopikController::class, 'store'])
+                    ->middleware('role:eo')
+                    ->name('topik.store');
+            });
+
+        Route::prefix('forum')
+            ->whereNumber('forum')
+            ->name('api.v1.forum.')
+            ->group(function () {
+                Route::get('/{forum}', [PesanController::class, 'show'])
+                    ->middleware('role:eo,vendor,pemda,komunitas,akademisi,media,admin')
+                    ->name('pesan.show');
+
+                Route::post('/{forum}/pesan', [PesanController::class, 'store'])
+                    ->middleware('role:eo,komunitas,akademisi,pemda,vendor,media')
+                    ->name('pesan.store');
+            });
 
         // Modul Event dan Kolaborasi untuk Event Organizer.
         Route::middleware('role:eo')->prefix('eo')->name('api.v1.eo.')->group(function () {

@@ -6,8 +6,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Route;
 
 /**
- * Menu sidebar per role (sesuai Figma). Dipakai bersama oleh seluruh halaman
- * lewat HandleInertiaRequests ('menu').
+ * Menu sidebar per role. Dipakai bersama oleh seluruh halaman lewat
+ * HandleInertiaRequests ('menu'). Seluruh peran memakai tema terang supaya
+ * sidebar konsisten dengan Panel Admin; isi menu tetap berbeda per peran.
  *
  * Item menu otomatis AKTIF begitu route-nya ada. Selama route modul belum
  * dibuat (Tahap 7), 'href' bernilai null dan item tampil nonaktif.
@@ -82,8 +83,8 @@ class RoleMenuService
         }
 
         return [
-            'panel' => null,
-            'tema' => 'gelap',
+            'panel' => 'PANEL '.strtoupper($user->role),
+            'tema' => 'terang',
             'peranLabel' => config("lokamitra.peran_registrasi.{$user->role}", ucfirst($user->role)),
             'items' => $items,
         ];
