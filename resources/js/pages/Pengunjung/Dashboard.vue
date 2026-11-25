@@ -38,6 +38,7 @@ const palet = [
 ];
 
 const q = ref(props.filter.q);
+const gambarHeroGagal = ref(false);
 
 // Terapkan filter ke server; parameter kosong tidak dikirim.
 function terapkan(perubahan: Partial<typeof props.filter> = {}) {
@@ -69,12 +70,26 @@ defineOptions({
     <section
         class="relative overflow-hidden bg-[#0D443D] px-6 py-16 text-white"
     >
+        <!-- Foto latar dari Unsplash; lisensi Unsplash. Fallback: gradasi hijau di bawahnya. -->
+        <img
+            v-if="!gambarHeroGagal"
+            src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=80"
+            alt="Suasana kerumunan pada sebuah festival"
+            class="absolute inset-0 h-full w-full object-cover"
+            loading="eager"
+            decoding="async"
+            @error="gambarHeroGagal = true"
+        />
+        <div
+            class="absolute inset-0 bg-gradient-to-r from-[#0D443D]/95 via-[#0D443D]/80 to-[#0D443D]/50"
+        ></div>
+
         <!-- dekorasi: glow blobs -->
         <div
-            class="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#216B60]/50 blur-3xl"
+            class="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-[#216B60]/30 blur-3xl"
         ></div>
         <div
-            class="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-[#F5B52E]/15 blur-3xl"
+            class="pointer-events-none absolute -bottom-32 -left-16 h-80 w-80 rounded-full bg-[#F5B52E]/10 blur-3xl"
         ></div>
         <!-- dekorasi: grid dots -->
         <div
