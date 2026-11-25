@@ -32,6 +32,7 @@ const props = defineProps<{
 }>();
 
 const q = ref(props.filter.q);
+const gambarHeroGagal = ref(false);
 
 // Terapkan filter ke server; parameter kosong tidak dikirim.
 function terapkan(perubahan: Partial<typeof props.filter> = {}) {
@@ -60,6 +61,50 @@ defineOptions({
     <Head title="Dashboard Pengunjung" />
 
     <div class="flex flex-col gap-4 p-4 md:p-6">
+        <!-- Hero dengan foto latar (F-06). Fallback: gradasi hijau bila gambar gagal dimuat. -->
+        <section
+            class="relative overflow-hidden rounded-2xl bg-[#0D443D] px-6 py-10 text-white"
+            data-test="hero-pengunjung"
+        >
+            <!-- Foto: Unsplash, lisensi Unsplash. -->
+            <img
+                v-if="!gambarHeroGagal"
+                src="https://images.unsplash.com/photo-1492684223066-81342ee5ff30?auto=format&fit=crop&w=1600&q=80"
+                alt="Suasana kerumunan pada sebuah festival"
+                class="absolute inset-0 h-full w-full object-cover"
+                loading="eager"
+                decoding="async"
+                @error="gambarHeroGagal = true"
+            />
+            <div
+                class="absolute inset-0 bg-gradient-to-r from-[#0D443D]/95 via-[#0D443D]/80 to-[#0D443D]/50"
+            ></div>
+
+            <div class="relative max-w-2xl">
+                <span
+                    class="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-[#F5B52E] uppercase"
+                >
+                    ✦ Event Lokamitra
+                </span>
+                <h1
+                    class="mt-3 text-2xl leading-tight font-extrabold md:text-3xl"
+                >
+                    Temukan event yang menghubungkan Banyumas.
+                </h1>
+                <p class="mt-2 text-sm text-white/80">
+                    Jelajahi acara terverifikasi, lihat jadwal dan lokasi, lalu
+                    kenali stakeholder di balik setiap event.
+                </p>
+                <a
+                    href="#daftar-event"
+                    class="mt-5 inline-flex items-center gap-1.5 rounded-full bg-[#F5B52E] px-5 py-2 text-sm font-bold text-neutral-900 transition-colors hover:bg-[#e5a81e]"
+                >
+                    Jelajahi event
+                    <ArrowRight class="size-4" />
+                </a>
+            </div>
+        </section>
+
         <header class="flex flex-wrap items-start justify-between gap-3">
             <div>
                 <h1
@@ -212,6 +257,7 @@ defineOptions({
             <ul
                 v-else
                 class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                id="daftar-event"
                 data-test="daftar-event"
             >
                 <li
